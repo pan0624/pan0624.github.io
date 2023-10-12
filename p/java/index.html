@@ -943,6 +943,11 @@ fianl 类不可以被继承</p>
 	
 	
 ></p>
+<p>实际上类似于c++中对于字符串数组的修改
+在程序对于线程安全有要求时必须使用==StringBuffer==
+需要注意的是==StringBuilder sb = &ldquo;aaa&rdquo;;==这样的用法是错误的
+StringBuilder是一个类，不能直接像String一样快捷创建字符串，必须要先创建一个空的可变字符串对象，再使用.append(&ldquo;this is string&rdquo;)函数填充内容
+<code>tringBuilder sb = new StringBuilder();</code></p>
 <h2 id="swing框架使用">swing框架使用</h2>
 <h3 id="一元二次求根案例">一元二次求根案例</h3>
 <p><img src="https://s2.loli.net/2023/09/25/1VE8b6fSQKpcjmn.jpg"
