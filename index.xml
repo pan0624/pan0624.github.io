@@ -2077,6 +2077,17 @@ token与ua数据不绑定
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;这样确认了后端api完全无验证，只需对应device_id即可，==token==无限制&lt;/p&gt;
+&lt;h3 id=&#34;目前完成了小程序的初步功能实现了梅兰苑的查询但是前端界面应该后期会重写其他功能暂定可能访问人数上来后会继续推进&#34;&gt;目前完成了小程序的初步功能，实现了梅兰苑的查询，但是前端界面应该后期会重写，其他功能暂定，可能访问人数上来后会继续推进&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://s2.loli.net/2023/10/12/4yJcM2DoVz8UA1Y.jpg&#34;
+	
+	
+	
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;gh_b4b859c6df67_258 (1).jpg&#34;
+	
+	
+&gt;&lt;/p&gt;
 &lt;h3 id=&#34;当设定充电站空闲时自动提醒&#34;&gt;当设定充电站空闲时自动提醒&lt;/h3&gt;
 &lt;h3 id=&#34;可能有的广告接口以及付费接口&#34;&gt;可能有的广告接口以及付费接口&lt;/h3&gt;
 </description>
