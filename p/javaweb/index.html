@@ -307,6 +307,13 @@ HTML html模版格式 1 2 3 4 5 6 7 8 9 10 &amp;lt;!DOCTYPE html&amp;gt; &amp;lt
       </ol>
     </li>
     <li><a href="#变量及使用">变量及使用</a></li>
+    <li><a href="#函数">函数</a>
+      <ol>
+        <li><a href="#内部函数">内部函数</a></li>
+        <li><a href="#声明函数">声明函数</a></li>
+      </ol>
+    </li>
+    <li><a href="#对象">对象</a></li>
   </ol>
 </nav>
         </div>
@@ -1479,7 +1486,143 @@ vlaue是表单提交表单元素的默认值
 var:全局变量
 let：块级作用域变量，即在{},if语句，for循环中有效
 const：常量，一次赋值后不可修改</p>
-
+<h2 id="函数">函数</h2>
+<h3 id="内部函数">内部函数</h3>
+<ul>
+<li>弹出警报框
+<code>alert(&quot;这是警报内容&quot;)</code></li>
+<li>弹出确认框</li>
+</ul>
+<p><img src="https://s2.loli.net/2023/10/17/qmU5eb3s4NFvjIx.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png|600"
+	
+	
+></p>
+<p>这里弹出确认框的操作仅仅是confirm函数实现的，他的返回值是布尔类型的ture或者false
+这里使用console.log函数，当返回不同布尔值时，写入不同的日志</p>
+<p><img src="https://s2.loli.net/2023/10/17/T7X95EVNWjKOtdY.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<ul>
+<li>打印（写入）日志</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&#34;日志内容&#34;</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="声明函数">声明函数</h3>
+<p>这里有这两种声明方式</p>
+<ul>
+<li>常规函数声明方式，这种方式通过sum(a,b)的形式调用</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl">		<span class="kd">function</span> <span class="nx">sum</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="nx">a</span><span class="o">+</span><span class="nx">b</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>变量声明方式，因为js的不严格性，可以将整个函数赋值给一个变量，然后通过调用这个变量来调用函数，如下通过total；即可调用</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">total</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="nx">a</span><span class="o">+</span><span class="nx">b</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在之前写的案例中也实现了两种方式都可以弹出确认框并写入日志</p>
+<p><img src="https://s2.loli.net/2023/10/17/R374xWyqrKsfdge.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png|600"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2023/10/17/XKdISk7czWYNiGj.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png|600"
+	
+	
+></p>
+<p>这段代码中两种方式都实现了相同的功能
+无论是哪种方式</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">sum</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这种调用函数并传参的方式都是允许的</p>
+<h2 id="对象">对象</h2>
+<p>js中并没有类的概念，对于对象的各个属性，也只需要动态的声明即可
+对象的创建方法有两种</p>
+<ul>
+<li>new方法</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl">		<span class="c1">// 创建对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="kd">var</span> <span class="nx">obj01</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Object</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">		
+</span></span><span class="line"><span class="cl">		<span class="c1">// 给对象设置属性和属性值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">obj01</span><span class="p">.</span><span class="nx">stuName</span> <span class="o">=</span> <span class="s2">&#34;tom&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">obj01</span><span class="p">.</span><span class="nx">stuAge</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">obj01</span><span class="p">.</span><span class="nx">stuSubject</span> <span class="o">=</span> <span class="s2">&#34;java&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">		
+</span></span><span class="line"><span class="cl">		<span class="c1">// 在控制台输出对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj01</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
 </section>
 
 
