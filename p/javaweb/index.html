@@ -313,7 +313,22 @@ HTML html模版格式 1 2 3 4 5 6 7 8 9 10 &amp;lt;!DOCTYPE html&amp;gt; &amp;lt
         <li><a href="#声明函数">声明函数</a></li>
       </ol>
     </li>
-    <li><a href="#对象">对象</a></li>
+    <li><a href="#对象">对象</a>
+      <ol>
+        <li><a href="#函数属性">函数属性</a></li>
+        <li><a href="#this关键字">this关键字</a></li>
+      </ol>
+    </li>
+    <li><a href="#数组">数组</a></li>
+    <li><a href="#json">JSON</a>
+      <ol>
+        <li><a href="#格式">格式</a>
+          <ol>
+            <li><a href="#josn格式的互相转换">JOSN格式的互相转换</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
   </ol>
 </nav>
         </div>
@@ -357,7 +372,7 @@ HTML html模版格式 1 2 3 4 5 6 7 8 9 10 &amp;lt;!DOCTYPE html&amp;gt; &amp;lt
 
 
                 <time class="article-time--reading">
-                    6 minute read
+                    8 minute read
                 </time>
             </div>
         
@@ -1622,7 +1637,396 @@ const：常量，一次赋值后不可修改</p>
 </span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj01</span><span class="p">);</span>
 </span></span></code></pre></td></tr></table>
 </div>
+</div><p>这里首先new了一个Object对象，随后设置属性和属性值实际上是同时进行的，换句话说就是动态进行的声明并赋值</p>
+<ul>
+<li>{}创建</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl">		<span class="c1">// 创建对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="kd">var</span> <span class="nx">obj02</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;soldierName&#34;</span><span class="o">:</span><span class="s2">&#34;john&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;soldierAge&#34;</span><span class="o">:</span><span class="mi">35</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;soldierWeapon&#34;</span><span class="o">:</span><span class="s2">&#34;gun&#34;</span>
+</span></span><span class="line"><span class="cl">		<span class="p">};</span>
+</span></span><span class="line"><span class="cl">		
+</span></span><span class="line"><span class="cl">		<span class="c1">// 在控制台输出对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj02</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
 </div>
+</div><p>这里创建了对象obj02，在创建的同时就定义了对象的属性和对应值，例如<code>soldierName</code>属性的值为<code>john</code>，这样的对象创建方法更加简单</p>
+<h3 id="函数属性">函数属性</h3>
+<p>在js对象中，如果需要创建一个函数属性，同样可以使用对象创建时的两种方法
+这里给出对应🌰</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="c1">// 创建对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">obj01</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Object</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 给对象设置属性和属性值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">obj01</span><span class="p">.</span><span class="nx">stuName</span> <span class="o">=</span> <span class="s2">&#34;tom&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">obj01</span><span class="p">.</span><span class="nx">stuAge</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">obj01</span><span class="p">.</span><span class="nx">stuSubject</span> <span class="o">=</span> <span class="s2">&#34;java&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">obj01</span><span class="p">.</span><span class="nx">study</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">stuName</span> <span class="o">+</span> <span class="s2">&#34; is studying&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 在控制台输出对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj01</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 调用函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">obj01</span><span class="p">.</span><span class="nx">study</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这段代码写了一个日志输出<code>stuName</code> is studying的函数，这种在对象创建号后再动态添加函数的方法实际上用在代码的任何区域</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="c1">// 创建对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">obj02</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;soldierName&#34;</span><span class="o">:</span><span class="s2">&#34;john&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;soldierAge&#34;</span><span class="o">:</span><span class="mi">35</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;soldierWeapon&#34;</span><span class="o">:</span><span class="s2">&#34;gun&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;soldierShoot&#34;</span><span class="o">:</span><span class="kd">function</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">soldierName</span> <span class="o">+</span> <span class="s2">&#34; is using &#34;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">soldierWeapon</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 在控制台输出对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj02</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 调用函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">obj02</span><span class="p">.</span><span class="nx">soldierShoot</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里添加函数是在创建对象的定义中实现的，这里的函数并不是动态添加的</p>
+<h3 id="this关键字">this关键字</h3>
+<p>this指向的内容只有两种</p>
+<ul>
+<li>在函数的外面，this指向的是当前窗口</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="c1">// 直接打印this
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//这里打印了当前浏览器窗口的所有信息
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>在函数的里面，this指向调用该函数的对象</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="c1">// 函数中的this
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 1.声明函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">function</span> <span class="nx">getName</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 2.创建对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">obj01</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;name&#34;</span><span class="o">:</span><span class="s2">&#34;tom&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;getName&#34;</span><span class="o">:</span><span class="nx">getName</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">obj02</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;name&#34;</span><span class="o">:</span><span class="s2">&#34;jerry&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;getName&#34;</span><span class="o">:</span><span class="nx">getName</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 3.调用函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">obj01</span><span class="p">.</span><span class="nx">getName</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nx">obj02</span><span class="p">.</span><span class="nx">getName</span><span class="p">();</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里分别指向调用函数的对象
+实际上来说，js重的this指针是跟其他语言有着很大区别的，主要的原因就是因为js中的this是动态的，会随着函数的调用不停的更新</p>
+<h2 id="数组">数组</h2>
+<p>先给出一个例子</p>
+<ul>
+<li>new创建</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="c1">// 1.创建数组对象
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">arr01</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Array</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 2.压入数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">arr01</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">&#34;apple&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">arr01</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">&#34;orange&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">arr01</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">&#34;banana&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">arr01</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">&#34;grape&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 3.遍历数组
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">arr01</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">arr01</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 4.数组元素反序
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">arr01</span><span class="p">.</span><span class="nx">reverse</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">arr01</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">arr01</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 5.数组元素拼接成字符串
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">arrStr</span> <span class="o">=</span> <span class="nx">arr01</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s2">&#34;,&#34;</span><span class="p">);</span><span class="c1">//以,为分隔符
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">arrStr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 6.字符串拆分成数组
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">arr02</span> <span class="o">=</span> <span class="nx">arrStr</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&#34;,&#34;</span><span class="p">);</span><span class="c1">//以,切割字符串
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">arr02</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">arr02</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 7.弹出数组中最后一个元素
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">ele</span> <span class="o">=</span> <span class="nx">arr01</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">ele</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里发现js中的数组有着一部分栈的属性，主要是因为js数组对象中，索引和长度等信息是作为数组对象的属性存储在栈内存中的，这样实现了对数组的快速访问和操作
+同时js数组中的元素的实际值是存放在堆中的，这样由于堆内存是动态分配的，所以数组的大小是动态的，同时这里数组中元素的实际值是作为对象的属性存放在堆中的，所以数组元素中的值可以是任何类型
+这里数组与栈和堆的关系实际上也体现了js的内核，动态性，弱类型</p>
+<ul>
+<li>[]创建</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="c1">// 8.使用[]创建数组
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">arr03</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&#34;cat&#34;</span><span class="p">,</span><span class="s2">&#34;dog&#34;</span><span class="p">,</span><span class="s2">&#34;tiger&#34;</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">arr03</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="json">JSON</h2>
+<p>json格式的数据，常用于跨平台传输数据</p>
+<h3 id="格式">格式</h3>
+<ul>
+<li>=={}==定义JSON对象</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="p">{</span><span class="nx">key</span><span class="o">:</span><span class="nx">value</span><span class="p">,</span><span class="nx">key</span><span class="o">:</span><span class="nx">value</span><span class="p">,...,</span><span class="nx">key</span><span class="o">:</span><span class="nx">value</span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>==[]==定义JSON数组</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="p">[</span><span class="nx">value</span><span class="p">,</span><span class="nx">value</span><span class="p">,...,</span><span class="nx">value</span><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>由于JSON中的value部分可以继续使用json对象或者数组，所以JSON是可以多层嵌套的
+对于复杂的数据，通常直接使用多层嵌套解决</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;stuId&#34;</span><span class="o">:</span><span class="mi">556</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;stuName&#34;</span><span class="o">:</span><span class="s2">&#34;carl&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;school&#34;</span><span class="o">:</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="s2">&#34;schoolId&#34;</span><span class="o">:</span><span class="mi">339</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s2">&#34;schoolName&#34;</span><span class="o">:</span><span class="s2">&#34;atguigu&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;subjectList&#34;</span><span class="o">:</span><span class="p">[</span>
+</span></span><span class="line"><span class="cl">		<span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;subjectName&#34;</span><span class="o">:</span><span class="s2">&#34;java&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;subjectScore&#34;</span><span class="o">:</span><span class="mi">50</span>
+</span></span><span class="line"><span class="cl">		<span class="p">},</span>
+</span></span><span class="line"><span class="cl">		<span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;subjectName&#34;</span><span class="o">:</span><span class="s2">&#34;PHP&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;subjectScore&#34;</span><span class="o">:</span><span class="mi">35</span>
+</span></span><span class="line"><span class="cl">		<span class="p">},</span>
+</span></span><span class="line"><span class="cl">		<span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;subjectName&#34;</span><span class="o">:</span><span class="s2">&#34;python&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;subjectScore&#34;</span><span class="o">:</span><span class="mi">24</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">],</span>
+</span></span><span class="line"><span class="cl">	<span class="s2">&#34;teacherMap&#34;</span><span class="o">:</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="s2">&#34;aaa&#34;</span><span class="o">:</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;teacherName&#34;</span><span class="o">:</span><span class="s2">&#34;zhangsan&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;teacherAge&#34;</span><span class="o">:</span><span class="mi">20</span>
+</span></span><span class="line"><span class="cl">		<span class="p">},</span>
+</span></span><span class="line"><span class="cl">		<span class="s2">&#34;bbb&#34;</span><span class="o">:</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;teacherName&#34;</span><span class="o">:</span><span class="s2">&#34;zhangsanfeng&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;teacherAge&#34;</span><span class="o">:</span><span class="mi">108</span>
+</span></span><span class="line"><span class="cl">		<span class="p">},</span>
+</span></span><span class="line"><span class="cl">		<span class="s2">&#34;ccc&#34;</span><span class="o">:</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;teacherName&#34;</span><span class="o">:</span><span class="s2">&#34;zhangwuji&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="s2">&#34;teacherAge&#34;</span><span class="o">:</span><span class="mi">25</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之前做的微信小程序抓包的时候有抓到对应的json内容</p>
+<h4 id="josn格式的互相转换">JOSN格式的互相转换</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">jsonObj</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&#34;stuName&#34;</span><span class="o">:</span><span class="s2">&#34;tom&#34;</span><span class="p">,</span><span class="s2">&#34;stuAge&#34;</span><span class="o">:</span><span class="mi">20</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">jsonStr</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">jsonObj</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">jsonObj</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">jsonStr</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="dom">DOM</h1>
+<p>包含了所有标签对象的整个树形结构对象
+就是JavaScript中的一个可以直接使用的内置对象：document</p>
+
 </section>
 
 
