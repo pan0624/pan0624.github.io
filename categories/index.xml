@@ -6,6 +6,22 @@
         <description>Recent content in Categories on pan_0624的个人博客</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
-        <copyright>Example Person</copyright><atom:link href="http://blog.pan0624.top/categories/index.xml" rel="self" type="application/rss+xml" />
+        <copyright>Example Person</copyright><atom:link href="http://blog.pan0624.top/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>code</title>
+        <link>http://blog.pan0624.top/categories/code/</link>
+        <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+        
+        <guid>http://blog.pan0624.top/categories/code/</guid>
+        <description></description>
+        </item>
+        <item>
+        <title>开发</title>
+        <link>http://blog.pan0624.top/categories/%E5%BC%80%E5%8F%91/</link>
+        <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+        
+        <guid>http://blog.pan0624.top/categories/%E5%BC%80%E5%8F%91/</guid>
+        <description></description>
+        </item>
+        
     </channel>
 </rss>

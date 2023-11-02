@@ -13,6 +13,8 @@
   </url><url>
     <loc>http://blog.pan0624.top/categories/</loc>
   </url><url>
+    <loc>http://blog.pan0624.top/categories/code/</loc>
+  </url><url>
     <loc>http://blog.pan0624.top/p/java/</loc>
   </url><url>
     <loc>http://blog.pan0624.top/p/javaweb/</loc>
@@ -29,10 +31,10 @@
   </url><url>
     <loc>http://blog.pan0624.top/tags/%E5%BC%80%E5%8F%91/</loc>
   </url><url>
+    <loc>http://blog.pan0624.top/categories/%E5%BC%80%E5%8F%91/</loc>
+  </url><url>
     <loc>http://blog.pan0624.top/p/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%BC%80%E5%8F%91/</loc>
   </url><url>
     <loc>http://blog.pan0624.top/search/</loc>
-  </url><url>
-    <loc>http://blog.pan0624.top/tags/%E6%B8%97%E9%80%8F/</loc>
   </url>
 </urlset>
