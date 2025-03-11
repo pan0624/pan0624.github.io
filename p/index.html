@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='课程报告: CSRF攻击技术及其实现 1. 简介 跨站请求伪造 (Cross-Site Request Forgery, CSRF) 是一种网络安全攻击，攻击者通过伪造受信任用户的请求，执行未授权的操作。它利用了用户在已认证会话中不当保护的漏洞，诱使用户在不知情的情况下执行某些动作，从而达到攻击目的。
+2. CSRF 攻击原理 CSRF 攻击利用了受害者在已认证状态下的身份。主要流程如下：
+受害者登录到受信任网站（如银行网站），并产生一个有效的会话 cookie。 攻击者诱使受害者访问一个包含恶意请求的网页。 受害者访问该恶意网页时，网页中的恶意代码会自动发送一个请求到受信任网站。 由于受害者已登录，浏览器会自动附加会话 cookie，因此该请求将以受害者的身份执行。 受信任网站认为这是合法的请求，并执行请求中的操作，如转账、修改设置等。 3. CSRF 攻击的类型 GET 请求的 CSRF 攻击：通过包含恶意 URL 的图像、超链接等来触发。 POST 请求的 CSRF 攻击：通过隐藏表单和自动提交脚本来实现。 4. CSRF 攻击的实现 下面是一个简单的 CSRF 攻击实例：
+4.1 环境搭建 受信任网站 (Target)：假设有一个简单的银行网站 http://trustedbank.com，其中有一个转账页面。 恶意网站 (Attacker)：攻击者控制的恶意网站 http://evilsite.com。 4.2 受信任网站的转账页面 假设受信任网站的转账页面如下：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Transfer&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .transfer-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; margin-bottom: 20px; } form { display: flex; flex-direction: column; } label { margin-bottom: 5px; } input[type=&#34;text&#34;] { width: calc(100% - 22px); /* 减去padding和border的宽度 */ padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; margin-top: 10px; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;transfer-container&#34;&gt; &lt;h1&gt;Transfer Money&lt;/h1&gt; &lt;form action=&#34;transfer.html&#34; method=&#34;GET&#34; id=&#34;transferForm&#34;&gt; &lt;label for=&#34;amount&#34;&gt;Amount:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;amount&#34; name=&#34;amount&#34; value=&#34;&#34;&gt; &lt;label for=&#34;to_account&#34;&gt;To Account:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;to_account&#34; name=&#34;to_account&#34; value=&#34;&#34;&gt; &lt;input type=&#34;submit&#34; value=&#34;Transfer&#34;&gt; &lt;/form&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.3 登录界面 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Login&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .login-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; } form { margin-top: 20px; } label { display: block; margin-bottom: 5px; } input[type=&#34;text&#34;], input[type=&#34;password&#34;] { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { width: 100%; padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;script&gt; // 客户端验证逻辑 function validateForm() { var username = document.getElementById(&#39;username&#39;).value; var password = document.getElementById(&#39;password&#39;).value; // 检查用户名和密码是否符合预期值 if (username === &#34;user&#34; &amp;&amp; password === &#34;password&#34;) { // 如果匹配，设置cookie并允许表单提交 document.cookie = &#34;auth_token=secret123; path=/&#34;; // 假设的token值 return true; } else { // 如果不匹配，显示错误消息并阻止表单提交 alert(&#34;Invalid username or password.&#34;); return false; } } &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;login-container&#34;&gt; &lt;h1&gt;Login&lt;/h1&gt; &lt;!-- 表单提交时调用validateForm函数 --&gt; &lt;form action=&#34;trustedbank.html&#34; method=&#34;POST&#34; onsubmit=&#34;return validateForm()&#34;&gt; &lt;label for=&#34;username&#34;&gt;Username:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;username&#34; name=&#34;username&#34;&gt;&lt;br&gt;&lt;br&gt; &lt;label for=&#34;password&#34;&gt;Password:&lt;/label&gt; &lt;input type=&#34;password&#34; id=&#34;password&#34; name=&#34;password&#34;&gt;&lt;br&gt;&lt;br&gt; &lt;input type=&#34;submit&#34; value=&#34;Login&#34;&gt; &lt;/form&gt;&lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.4 转账后台 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Transfer&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .transfer-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; margin-bottom: 20px; } form { display: flex; flex-direction: column; } label { margin-bottom: 5px; } input[type=&#34;text&#34;] { width: calc(100% - 22px); /* 减去padding和border的宽度 */ padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; margin-top: 10px; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;transfer-container&#34;&gt; &lt;h1&gt;Transfer Money&lt;/h1&gt; &lt;form action=&#34;transfer.html&#34; method=&#34;GET&#34; id=&#34;transferForm&#34;&gt; &lt;label for=&#34;amount&#34;&gt;Amount:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;amount&#34; name=&#34;amount&#34; value=&#34;&#34;&gt; &lt;label for=&#34;to_account&#34;&gt;To Account:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;to_account&#34; name=&#34;to_account&#34; value=&#34;&#34;&gt; &lt;input type=&#34;submit&#34; value=&#34;Transfer&#34;&gt; &lt;/form&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.4 恶意网站的 CSRF 攻击页面 攻击者构造的恶意页面如下：
+'>
+<title></title>
+
+<link rel='canonical' href='http://blog.pan0624.top/p/'>
+
+<link rel="stylesheet" href="/scss/style.min.abbd69b2908fdfcd5179898beaafd374514a86538d81639ddd2c58c06ae54e40.css"><meta property='og:title' content=''>
+<meta property='og:description' content='课程报告: CSRF攻击技术及其实现 1. 简介 跨站请求伪造 (Cross-Site Request Forgery, CSRF) 是一种网络安全攻击，攻击者通过伪造受信任用户的请求，执行未授权的操作。它利用了用户在已认证会话中不当保护的漏洞，诱使用户在不知情的情况下执行某些动作，从而达到攻击目的。
+2. CSRF 攻击原理 CSRF 攻击利用了受害者在已认证状态下的身份。主要流程如下：
+受害者登录到受信任网站（如银行网站），并产生一个有效的会话 cookie。 攻击者诱使受害者访问一个包含恶意请求的网页。 受害者访问该恶意网页时，网页中的恶意代码会自动发送一个请求到受信任网站。 由于受害者已登录，浏览器会自动附加会话 cookie，因此该请求将以受害者的身份执行。 受信任网站认为这是合法的请求，并执行请求中的操作，如转账、修改设置等。 3. CSRF 攻击的类型 GET 请求的 CSRF 攻击：通过包含恶意 URL 的图像、超链接等来触发。 POST 请求的 CSRF 攻击：通过隐藏表单和自动提交脚本来实现。 4. CSRF 攻击的实现 下面是一个简单的 CSRF 攻击实例：
+4.1 环境搭建 受信任网站 (Target)：假设有一个简单的银行网站 http://trustedbank.com，其中有一个转账页面。 恶意网站 (Attacker)：攻击者控制的恶意网站 http://evilsite.com。 4.2 受信任网站的转账页面 假设受信任网站的转账页面如下：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Transfer&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .transfer-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; margin-bottom: 20px; } form { display: flex; flex-direction: column; } label { margin-bottom: 5px; } input[type=&#34;text&#34;] { width: calc(100% - 22px); /* 减去padding和border的宽度 */ padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; margin-top: 10px; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;transfer-container&#34;&gt; &lt;h1&gt;Transfer Money&lt;/h1&gt; &lt;form action=&#34;transfer.html&#34; method=&#34;GET&#34; id=&#34;transferForm&#34;&gt; &lt;label for=&#34;amount&#34;&gt;Amount:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;amount&#34; name=&#34;amount&#34; value=&#34;&#34;&gt; &lt;label for=&#34;to_account&#34;&gt;To Account:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;to_account&#34; name=&#34;to_account&#34; value=&#34;&#34;&gt; &lt;input type=&#34;submit&#34; value=&#34;Transfer&#34;&gt; &lt;/form&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.3 登录界面 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Login&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .login-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; } form { margin-top: 20px; } label { display: block; margin-bottom: 5px; } input[type=&#34;text&#34;], input[type=&#34;password&#34;] { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { width: 100%; padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;script&gt; // 客户端验证逻辑 function validateForm() { var username = document.getElementById(&#39;username&#39;).value; var password = document.getElementById(&#39;password&#39;).value; // 检查用户名和密码是否符合预期值 if (username === &#34;user&#34; &amp;&amp; password === &#34;password&#34;) { // 如果匹配，设置cookie并允许表单提交 document.cookie = &#34;auth_token=secret123; path=/&#34;; // 假设的token值 return true; } else { // 如果不匹配，显示错误消息并阻止表单提交 alert(&#34;Invalid username or password.&#34;); return false; } } &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;login-container&#34;&gt; &lt;h1&gt;Login&lt;/h1&gt; &lt;!-- 表单提交时调用validateForm函数 --&gt; &lt;form action=&#34;trustedbank.html&#34; method=&#34;POST&#34; onsubmit=&#34;return validateForm()&#34;&gt; &lt;label for=&#34;username&#34;&gt;Username:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;username&#34; name=&#34;username&#34;&gt;&lt;br&gt;&lt;br&gt; &lt;label for=&#34;password&#34;&gt;Password:&lt;/label&gt; &lt;input type=&#34;password&#34; id=&#34;password&#34; name=&#34;password&#34;&gt;&lt;br&gt;&lt;br&gt; &lt;input type=&#34;submit&#34; value=&#34;Login&#34;&gt; &lt;/form&gt;&lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.4 转账后台 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Transfer&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .transfer-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; margin-bottom: 20px; } form { display: flex; flex-direction: column; } label { margin-bottom: 5px; } input[type=&#34;text&#34;] { width: calc(100% - 22px); /* 减去padding和border的宽度 */ padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; margin-top: 10px; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;transfer-container&#34;&gt; &lt;h1&gt;Transfer Money&lt;/h1&gt; &lt;form action=&#34;transfer.html&#34; method=&#34;GET&#34; id=&#34;transferForm&#34;&gt; &lt;label for=&#34;amount&#34;&gt;Amount:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;amount&#34; name=&#34;amount&#34; value=&#34;&#34;&gt; &lt;label for=&#34;to_account&#34;&gt;To Account:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;to_account&#34; name=&#34;to_account&#34; value=&#34;&#34;&gt; &lt;input type=&#34;submit&#34; value=&#34;Transfer&#34;&gt; &lt;/form&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.4 恶意网站的 CSRF 攻击页面 攻击者构造的恶意页面如下：
+'>
+<meta property='og:url' content='http://blog.pan0624.top/p/'>
+<meta property='og:site_name' content='pan_0624的个人博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' />
+<meta name="twitter:title" content="">
+<meta name="twitter:description" content="课程报告: CSRF攻击技术及其实现 1. 简介 跨站请求伪造 (Cross-Site Request Forgery, CSRF) 是一种网络安全攻击，攻击者通过伪造受信任用户的请求，执行未授权的操作。它利用了用户在已认证会话中不当保护的漏洞，诱使用户在不知情的情况下执行某些动作，从而达到攻击目的。
+2. CSRF 攻击原理 CSRF 攻击利用了受害者在已认证状态下的身份。主要流程如下：
+受害者登录到受信任网站（如银行网站），并产生一个有效的会话 cookie。 攻击者诱使受害者访问一个包含恶意请求的网页。 受害者访问该恶意网页时，网页中的恶意代码会自动发送一个请求到受信任网站。 由于受害者已登录，浏览器会自动附加会话 cookie，因此该请求将以受害者的身份执行。 受信任网站认为这是合法的请求，并执行请求中的操作，如转账、修改设置等。 3. CSRF 攻击的类型 GET 请求的 CSRF 攻击：通过包含恶意 URL 的图像、超链接等来触发。 POST 请求的 CSRF 攻击：通过隐藏表单和自动提交脚本来实现。 4. CSRF 攻击的实现 下面是一个简单的 CSRF 攻击实例：
+4.1 环境搭建 受信任网站 (Target)：假设有一个简单的银行网站 http://trustedbank.com，其中有一个转账页面。 恶意网站 (Attacker)：攻击者控制的恶意网站 http://evilsite.com。 4.2 受信任网站的转账页面 假设受信任网站的转账页面如下：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Transfer&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .transfer-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; margin-bottom: 20px; } form { display: flex; flex-direction: column; } label { margin-bottom: 5px; } input[type=&#34;text&#34;] { width: calc(100% - 22px); /* 减去padding和border的宽度 */ padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; margin-top: 10px; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;transfer-container&#34;&gt; &lt;h1&gt;Transfer Money&lt;/h1&gt; &lt;form action=&#34;transfer.html&#34; method=&#34;GET&#34; id=&#34;transferForm&#34;&gt; &lt;label for=&#34;amount&#34;&gt;Amount:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;amount&#34; name=&#34;amount&#34; value=&#34;&#34;&gt; &lt;label for=&#34;to_account&#34;&gt;To Account:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;to_account&#34; name=&#34;to_account&#34; value=&#34;&#34;&gt; &lt;input type=&#34;submit&#34; value=&#34;Transfer&#34;&gt; &lt;/form&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.3 登录界面 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Login&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .login-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; } form { margin-top: 20px; } label { display: block; margin-bottom: 5px; } input[type=&#34;text&#34;], input[type=&#34;password&#34;] { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { width: 100%; padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;script&gt; // 客户端验证逻辑 function validateForm() { var username = document.getElementById(&#39;username&#39;).value; var password = document.getElementById(&#39;password&#39;).value; // 检查用户名和密码是否符合预期值 if (username === &#34;user&#34; &amp;&amp; password === &#34;password&#34;) { // 如果匹配，设置cookie并允许表单提交 document.cookie = &#34;auth_token=secret123; path=/&#34;; // 假设的token值 return true; } else { // 如果不匹配，显示错误消息并阻止表单提交 alert(&#34;Invalid username or password.&#34;); return false; } } &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;login-container&#34;&gt; &lt;h1&gt;Login&lt;/h1&gt; &lt;!-- 表单提交时调用validateForm函数 --&gt; &lt;form action=&#34;trustedbank.html&#34; method=&#34;POST&#34; onsubmit=&#34;return validateForm()&#34;&gt; &lt;label for=&#34;username&#34;&gt;Username:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;username&#34; name=&#34;username&#34;&gt;&lt;br&gt;&lt;br&gt; &lt;label for=&#34;password&#34;&gt;Password:&lt;/label&gt; &lt;input type=&#34;password&#34; id=&#34;password&#34; name=&#34;password&#34;&gt;&lt;br&gt;&lt;br&gt; &lt;input type=&#34;submit&#34; value=&#34;Login&#34;&gt; &lt;/form&gt;&lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.4 转账后台 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 &lt;!DOCTYPE html&gt; &lt;html&gt; &lt;head&gt; &lt;title&gt;Trusted Bank - Transfer&lt;/title&gt; &lt;style&gt; body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; } .transfer-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; } h1 { text-align: center; color: #333; margin-bottom: 20px; } form { display: flex; flex-direction: column; } label { margin-bottom: 5px; } input[type=&#34;text&#34;] { width: calc(100% - 22px); /* 减去padding和border的宽度 */ padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type=&#34;submit&#34;] { padding: 10px; background-color: #5cb85c; border: none; border-radius: 4px; color: white; cursor: pointer; margin-top: 10px; } input[type=&#34;submit&#34;]:hover { background-color: #4cae4c; } &lt;/style&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&#34;transfer-container&#34;&gt; &lt;h1&gt;Transfer Money&lt;/h1&gt; &lt;form action=&#34;transfer.html&#34; method=&#34;GET&#34; id=&#34;transferForm&#34;&gt; &lt;label for=&#34;amount&#34;&gt;Amount:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;amount&#34; name=&#34;amount&#34; value=&#34;&#34;&gt; &lt;label for=&#34;to_account&#34;&gt;To Account:&lt;/label&gt; &lt;input type=&#34;text&#34; id=&#34;to_account&#34; name=&#34;to_account&#34; value=&#34;&#34;&gt; &lt;input type=&#34;submit&#34; value=&#34;Transfer&#34;&gt; &lt;/form&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt; 4.4 恶意网站的 CSRF 攻击页面 攻击者构造的恶意页面如下：
+">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">pan_0624的个人博客</a></h1>
+            <h2 class="site-description">人最大的敌人就是自身的惯性</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        href='https://github.com/pan0624'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg class="icon" width="24px" height="24.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M850.346667 155.008a42.666667 42.666667 0 0 0-22.741334-23.509333c-8.704-3.754667-85.717333-33.322667-200.32 39.168H396.714667c-114.773333-72.618667-191.701333-42.922667-200.32-39.168a42.88 42.88 0 0 0-22.741334 23.466666c-26.197333 66.218667-18.048 136.448-7.850666 176.896C134.272 374.016 128 413.098667 128 469.333333c0 177.877333 127.104 227.882667 226.730667 246.272a189.568 189.568 0 0 0-13.013334 46.549334A44.373333 44.373333 0 0 0 341.333333 768v38.613333c-19.498667-4.138667-41.002667-11.946667-55.168-26.112C238.08 732.416 188.330667 682.666667 128 682.666667v85.333333c25.002667 0 65.365333 40.362667 97.834667 72.832 51.029333 51.029333 129.066667 55.253333 153.386666 55.253333 3.114667 0 5.376-0.085333 6.528-0.128A42.666667 42.666667 0 0 0 426.666667 853.333333v-82.090666c4.266667-24.746667 20.224-49.621333 27.946666-56.362667a42.666667 42.666667 0 0 0-23.125333-74.581333C293.333333 624.554667 213.333333 591.488 213.333333 469.333333c0-53.12 5.632-70.741333 31.573334-99.285333 11.008-12.117333 14.08-29.568 7.978666-44.8-4.821333-11.904-18.773333-65.450667-6.485333-117.546667 20.650667-1.578667 59.904 4.565333 113.706667 40.96C367.104 253.44 375.466667 256 384 256h256a42.666667 42.666667 0 0 0 23.936-7.338667c54.016-36.522667 92.970667-41.770667 113.664-41.130666 12.330667 52.224-1.578667 105.770667-6.4 117.674666a42.666667 42.666667 0 0 0 8.021333 44.928C805.077333 398.464 810.666667 416.085333 810.666667 469.333333c0 122.581333-79.957333 155.52-218.069334 170.922667a42.666667 42.666667 0 0 0-23.125333 74.709333c19.797333 17.066667 27.861333 32.469333 27.861333 53.034667v128h85.333334v-128c0-20.437333-3.925333-38.101333-9.770667-53.12C769.92 695.765333 896 643.712 896 469.333333c0-56.362667-6.272-95.530667-37.76-137.514666 10.197333-40.405333 18.261333-110.506667-7.893333-176.810667z" fill="currentColor"></path></svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='mailto:pan_0623@outlook.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg class="icon" width="24px" height="24.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M874.666667 181.333333H149.333333c-40.533333 0-74.666667 34.133333-74.666666 74.666667v512c0 40.533333 34.133333 74.666667 74.666666 74.666667h725.333334c40.533333 0 74.666667-34.133333 74.666666-74.666667V256c0-40.533333-34.133333-74.666667-74.666666-74.666667z m-725.333334 64h725.333334c6.4 0 10.666667 4.266667 10.666666 10.666667v25.6L512 516.266667l-373.333333-234.666667V256c0-6.4 4.266667-10.666667 10.666666-10.666667z m725.333334 533.333334H149.333333c-6.4 0-10.666667-4.266667-10.666666-10.666667V356.266667l356.266666 224c4.266667 4.266667 10.666667 4.266667 17.066667 4.266666s12.8-2.133333 17.066667-4.266666l356.266666-224V768c0 6.4-4.266667 10.666667-10.666666 10.666667z" fill="currentColor"></path></svg>
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%8F%8B%E9%93%BE/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友链</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+                <li id="i18n-switch">  
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                    <select name="language" onchange="window.location.href = this.selectedOptions[0].value">
+                        
+                            <option value="http://blog.pan0624.top/" selected></option>
+                        
+                    </select>
+                </li>
+            
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>Dark Mode</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#cuda和cudnn环境配置">cuda和cuDNN环境配置</a>
+      <ol>
+        <li><a href="#检查自己的英伟达驱动版本">检查自己的英伟达驱动版本</a></li>
+        <li><a href="#根据对应表选择合适的cuda版本">根据对应表选择合适的cuda版本</a></li>
+        <li><a href="#下载并安装cuda和cudnn">下载并安装cuda和cuDNN</a></li>
+      </ol>
+    </li>
+    <li><a href="#python虚拟环境配置">python虚拟环境配置</a></li>
+    <li><a href="#依赖下载">依赖下载</a></li>
+  </ol>
+
+  <ol>
+    <li><a href="#配置文件">配置文件</a></li>
+    <li><a href="#文件路径">文件路径</a></li>
+    <li><a href="#数据标注">数据标注</a></li>
+    <li><a href="#开始训练">开始训练</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/"></a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    5 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="环境部署">环境部署</h1>
+<h2 id="cuda和cudnn环境配置">cuda和cuDNN环境配置</h2>
+<h3 id="检查自己的英伟达驱动版本">检查自己的英伟达驱动版本</h3>
+<p><img src="https://s2.loli.net/2024/06/09/REqZN8ICamTzdxU.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="根据对应表选择合适的cuda版本">根据对应表选择合适的cuda版本</h3>
+<p><img src="https://s2.loli.net/2024/06/09/n8H3NA1IxyRdMQV.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>建议选择cuda11.8即可</p>
+<h3 id="下载并安装cuda和cudnn">下载并安装cuda和cuDNN</h3>
+<p><a class="link" href="https://developer.nvidia.com/cuda-toolkit-archive"  target="_blank" rel="noopener"
+    >https://developer.nvidia.com/cuda-toolkit-archive</a>
+cuda下载链接，下载选择11.8
+<a class="link" href="https://developer.nvidia.com/cudnn-downloads"  target="_blank" rel="noopener"
+    >https://developer.nvidia.com/cudnn-downloads</a>
+cuDNN下载链接，需要微软开发者账户，建议直接注册一个</p>
+<p><img src="https://s2.loli.net/2024/06/09/p5gSdh4j9wPkOzs.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>如图下载本地安装包，避免网络问题
+安装过程不再赘述，建议解压和安装路径都用默认且避免中文路径，选择自定义安装，不要勾选visual studio即可，是否覆盖安装显卡驱动请随意</p>
+<p>命令行输入nvcc &ndash;version 如果返回如下信息证明安装成功</p>
+<p><img src="https://s2.loli.net/2024/06/09/asZ79Trbe5Gvzl8.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>接下来进行cuDNN配置
+下载选项如图</p>
+<p><img src="https://s2.loli.net/2024/06/09/pG5wQJCNiXe3cPF.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>目前暂时没有win11专用版本，使用win10版本没影响
+进入路径</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"> <span class="nx">C</span><span class="o">:</span><span class="err">\</span><span class="nx">Program</span> <span class="nx">Files</span><span class="err">\</span><span class="nx">NVIDIA</span> <span class="nx">GPU</span> <span class="nx">Computing</span> <span class="nx">Toolkit</span><span class="err">\</span><span class="nx">CUDA</span><span class="err">\</span><span class="nx">v11</span><span class="p">.</span><span class="mi">8</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>将下载下来的cuDNN压缩包内bin,include,lib文件夹复制到前面给的路径内即可
+<img src="https://s2.loli.net/2024/06/09/CDpKfOgLsmdAqy3.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="python虚拟环境配置">python虚拟环境配置</h2>
+<p>conda安装使用请自行参考教程，可能碰到的问题链接
+<a class="link" href="https://blog.csdn.net/u010393510/article/details/130715238"  target="_blank" rel="noopener"
+    >https://blog.csdn.net/u010393510/article/details/130715238</a></p>
+<p>首先使用conda创建环境</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="nx">conda</span> <span class="nx">create</span>  <span class="o">-</span><span class="nx">p</span>  <span class="nx">D</span><span class="o">:</span><span class="err">\</span><span class="nx">yolov8</span><span class="err">\</span><span class="nx">yolo</span> <span class="nx">python</span><span class="o">=</span><span class="mf">3.9</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>需要注意这里的参数 -p为指定路径在D:\yolov8\路径下创建一个名为yolo的虚拟python环境，并且指定python版本为3.9，这样做的好处是python环境直接下载到当前项目内，不需要做链接，项目转接给别人也能快速上手</p>
+<p><img src="https://s2.loli.net/2024/06/09/8fLyDBaGNRctiIC.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>这里可以看到对应路径下环境已经存在，需要注意yolo文件夹下放的是虚拟环境相关文件
+这里可以直接cd到D:\yolov8路径下然后conda activate D:\yolov8\yolo激活虚拟环境</p>
+<p><img src="https://s2.loli.net/2024/06/09/bGDfamwO9tEUIK2.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>但是在对于包管理以及后续脚本运行不是很方便这里我们使用pycharm来管理整个项目并导入这个已经存在的conda环境</p>
+<p>pycharm打开整个项目文件夹
+添加已经存在的conda解解释器
+具体操作如图
+<img src="https://s2.loli.net/2024/06/09/QABxaM1oUr2LZvK.jpg"
+	
+	
+	
+	loading="lazy"
+	
+		alt="IMAGE 2024-06-09 10:21:55.jpg"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/06/09/voRljSbhZUdk2er.jpg"
+	
+	
+	
+	loading="lazy"
+	
+		alt="IMAGE 2024-06-09 10:22:12.jpg"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/06/09/q7QWSVw4nfErsCt.jpg"
+	
+	
+	
+	loading="lazy"
+	
+		alt="IMAGE 2024-06-09 10:22:26.jpg"
+	
+	
+></p>
+<p>打开pycharm自带的终端</p>
+<p><img src="https://s2.loli.net/2024/06/09/6UCEaMPA7JSpTF5.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>powershell前面括号如图显示证明配置正确</p>
+<h2 id="依赖下载">依赖下载</h2>
+<p>首先不要进行 pip install -r requirements.txt
+因为默认下载的pytorch是cpu版本，需要自己先下载对应版本的pytorch，我的设备是英伟达的显卡，所以下载cuda11.8 对应的torch
+<a class="link" href="https://pytorch.org/get-started/locally/"  target="_blank" rel="noopener"
+    >https://pytorch.org/get-started/locally/</a></p>
+<p><img src="https://s2.loli.net/2024/06/09/25bQEU84YFhXZkW.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+如图选择，官方就已经给出了要执行的命令，在pycharm的终端里面执行即可
+这里给出一个用于测试cuda是否可用的小脚本</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">torch</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 检查CUDA是否可用</span>
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 如果CUDA可用，列出CUDA设备</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;CUDA is available!&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;CUDA Device Name:&#34;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;CUDA is not available.&#34;</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://s2.loli.net/2024/06/09/umzLXnC3N6xUMWk.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>随后执行</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</span></span><span class="line"><span class="cl"><span class="n">pip</span> <span class="n">install</span> <span class="n">ultralytics</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># ultralytics中包含了yolov8，不需要额外pip install yolo，这里的yolo下载下来居然是一个管理amp的包，会造成yolo命令冲突而失效</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>验证yolo环境</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="nx">yolo</span> <span class="nx">predict</span> <span class="nx">model</span><span class="o">=</span><span class="nx">yolov8n</span><span class="p">.</span><span class="nx">pt</span> <span class="nx">source</span><span class="o">=</span><span class="s1">&#39;https://ultralytics.com/images/bus.jpg&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在路径runs/detect/predict下可以看见一张标注出红框的图片即表示安装成功</p>
+<h1 id="模型训练">模型训练</h1>
+<h2 id="配置文件">配置文件</h2>
+<p>本项目的目的只是为了对对象进行识别，不需要对轮廓进行分割等操作，所以使用ultralytics训练好的预训练模型yolov8n.pt，首先在官网查看coco8的配置文件进行参考</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Ultralytics YOLO 🚀, AGPL-3.0 license</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># COCO8 dataset (first 8 images from COCO train2017) by Ultralytics</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Documentation: https://docs.ultralytics.com/datasets/detect/coco8/</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Example usage: yolo train data=coco8.yaml</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># parent</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># ├── ultralytics</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># └── datasets</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c">#     └── coco8  ← downloads here (1 MB)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">../datasets/coco8</span><span class="w"> </span><span class="c"># dataset root dir</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">train</span><span class="p">:</span><span class="w"> </span><span class="l">images/train</span><span class="w"> </span><span class="c"># train images (relative to &#39;path&#39;) 4 images</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">val</span><span class="p">:</span><span class="w"> </span><span class="l">images/val</span><span class="w"> </span><span class="c"># val images (relative to &#39;path&#39;) 4 images</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="c"># test images (optional)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Classes</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">names</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l">person</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">1</span><span class="p">:</span><span class="w"> </span><span class="l">bicycle</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">2</span><span class="p">:</span><span class="w"> </span><span class="l">car</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">3</span><span class="p">:</span><span class="w"> </span><span class="l">motorcycle</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">4</span><span class="p">:</span><span class="w"> </span><span class="l">airplane</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">5</span><span class="p">:</span><span class="w"> </span><span class="l">bus</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">6</span><span class="p">:</span><span class="w"> </span><span class="l">train</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">7</span><span class="p">:</span><span class="w"> </span><span class="l">truck</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">8</span><span class="p">:</span><span class="w"> </span><span class="l">boat</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">9</span><span class="p">:</span><span class="w"> </span><span class="l">traffic light</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">10</span><span class="p">:</span><span class="w"> </span><span class="l">fire hydrant</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">11</span><span class="p">:</span><span class="w"> </span><span class="l">stop sign</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">12</span><span class="p">:</span><span class="w"> </span><span class="l">parking meter</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">13</span><span class="p">:</span><span class="w"> </span><span class="l">bench</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">14</span><span class="p">:</span><span class="w"> </span><span class="l">bird</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">15</span><span class="p">:</span><span class="w"> </span><span class="l">cat</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">16</span><span class="p">:</span><span class="w"> </span><span class="l">dog</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">17</span><span class="p">:</span><span class="w"> </span><span class="l">horse</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">18</span><span class="p">:</span><span class="w"> </span><span class="l">sheep</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">19</span><span class="p">:</span><span class="w"> </span><span class="l">cow</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">20</span><span class="p">:</span><span class="w"> </span><span class="l">elephant</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">21</span><span class="p">:</span><span class="w"> </span><span class="l">bear</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">22</span><span class="p">:</span><span class="w"> </span><span class="l">zebra</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">23</span><span class="p">:</span><span class="w"> </span><span class="l">giraffe</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">24</span><span class="p">:</span><span class="w"> </span><span class="l">backpack</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">25</span><span class="p">:</span><span class="w"> </span><span class="l">umbrella</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">26</span><span class="p">:</span><span class="w"> </span><span class="l">handbag</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">27</span><span class="p">:</span><span class="w"> </span><span class="l">tie</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">28</span><span class="p">:</span><span class="w"> </span><span class="l">suitcase</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">29</span><span class="p">:</span><span class="w"> </span><span class="l">frisbee</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">30</span><span class="p">:</span><span class="w"> </span><span class="l">skis</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">31</span><span class="p">:</span><span class="w"> </span><span class="l">snowboard</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">32</span><span class="p">:</span><span class="w"> </span><span class="l">sports ball</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">33</span><span class="p">:</span><span class="w"> </span><span class="l">kite</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">34</span><span class="p">:</span><span class="w"> </span><span class="l">baseball bat</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">35</span><span class="p">:</span><span class="w"> </span><span class="l">baseball glove</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">36</span><span class="p">:</span><span class="w"> </span><span class="l">skateboard</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">37</span><span class="p">:</span><span class="w"> </span><span class="l">surfboard</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">38</span><span class="p">:</span><span class="w"> </span><span class="l">tennis racket</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">39</span><span class="p">:</span><span class="w"> </span><span class="l">bottle</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">40</span><span class="p">:</span><span class="w"> </span><span class="l">wine glass</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">41</span><span class="p">:</span><span class="w"> </span><span class="l">cup</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">42</span><span class="p">:</span><span class="w"> </span><span class="l">fork</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">43</span><span class="p">:</span><span class="w"> </span><span class="l">knife</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">44</span><span class="p">:</span><span class="w"> </span><span class="l">spoon</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">45</span><span class="p">:</span><span class="w"> </span><span class="l">bowl</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">46</span><span class="p">:</span><span class="w"> </span><span class="l">banana</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">47</span><span class="p">:</span><span class="w"> </span><span class="l">apple</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">48</span><span class="p">:</span><span class="w"> </span><span class="l">sandwich</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">49</span><span class="p">:</span><span class="w"> </span><span class="l">orange</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">50</span><span class="p">:</span><span class="w"> </span><span class="l">broccoli</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">51</span><span class="p">:</span><span class="w"> </span><span class="l">carrot</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">52</span><span class="p">:</span><span class="w"> </span><span class="l">hot dog</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">53</span><span class="p">:</span><span class="w"> </span><span class="l">pizza</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">54</span><span class="p">:</span><span class="w"> </span><span class="l">donut</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">55</span><span class="p">:</span><span class="w"> </span><span class="l">cake</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">56</span><span class="p">:</span><span class="w"> </span><span class="l">chair</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">57</span><span class="p">:</span><span class="w"> </span><span class="l">couch</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">58</span><span class="p">:</span><span class="w"> </span><span class="l">potted plant</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">59</span><span class="p">:</span><span class="w"> </span><span class="l">bed</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">60</span><span class="p">:</span><span class="w"> </span><span class="l">dining table</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">61</span><span class="p">:</span><span class="w"> </span><span class="l">toilet</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">62</span><span class="p">:</span><span class="w"> </span><span class="l">tv</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">63</span><span class="p">:</span><span class="w"> </span><span class="l">laptop</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">64</span><span class="p">:</span><span class="w"> </span><span class="l">mouse</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">65</span><span class="p">:</span><span class="w"> </span><span class="l">remote</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">66</span><span class="p">:</span><span class="w"> </span><span class="l">keyboard</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">67</span><span class="p">:</span><span class="w"> </span><span class="l">cell phone</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">68</span><span class="p">:</span><span class="w"> </span><span class="l">microwave</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">69</span><span class="p">:</span><span class="w"> </span><span class="l">oven</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">70</span><span class="p">:</span><span class="w"> </span><span class="l">toaster</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">71</span><span class="p">:</span><span class="w"> </span><span class="l">sink</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">72</span><span class="p">:</span><span class="w"> </span><span class="l">refrigerator</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">73</span><span class="p">:</span><span class="w"> </span><span class="l">book</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">74</span><span class="p">:</span><span class="w"> </span><span class="l">clock</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">75</span><span class="p">:</span><span class="w"> </span><span class="l">vase</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">76</span><span class="p">:</span><span class="w"> </span><span class="l">scissors</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">77</span><span class="p">:</span><span class="w"> </span><span class="l">teddy bear</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">78</span><span class="p">:</span><span class="w"> </span><span class="l">hair drier</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">79</span><span class="p">:</span><span class="w"> </span><span class="l">toothbrush</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Download script/URL (optional)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">download</span><span class="p">:</span><span class="w"> </span><span class="l">https://ultralytics.com/assets/coco8.zip</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>大致结构如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">../datasets/coco8</span><span class="w"> </span><span class="c"># dataset root dir 训练的数据集在的根目录</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">train</span><span class="p">:</span><span class="w"> </span><span class="l">images/train</span><span class="w"> </span><span class="c"># train images (relative to &#39;path&#39;) 4 images 训练图片</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">val</span><span class="p">:</span><span class="w"> </span><span class="l">images/val</span><span class="w"> </span><span class="c"># val images (relative to &#39;path&#39;) 4 images 验证图片</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="c"># test images (optional) 测试图片</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># Classes 人工标注的框的种类</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">names</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l">person</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">1</span><span class="p">:</span><span class="w"> </span><span class="l">bicycle</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">2</span><span class="p">:</span><span class="w"> </span><span class="l">car</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">3</span><span class="p">:</span><span class="w"> </span><span class="l">motorcycle</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>进行修改</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l">D:\yolov8\datasets\pvz </span><span class="w"> </span><span class="c"># dataset root dir</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">train</span><span class="p">:</span><span class="w"> </span><span class="l">images </span><span class="w"> </span><span class="c"># train images (relative to &#39;path&#39;) 128 images</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">val</span><span class="p">:</span><span class="w"> </span><span class="l">images </span><span class="w"> </span><span class="c"># val images (relative to &#39;path&#39;) 128 images</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">names</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">0</span><span class="p">:</span><span class="w"> </span><span class="l">common</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">1</span><span class="p">:</span><span class="w"> </span><span class="l">hat</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">2</span><span class="p">:</span><span class="w"> </span><span class="l">cat</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">3</span><span class="p">:</span><span class="w"> </span><span class="l">iron</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">4</span><span class="p">:</span><span class="w"> </span><span class="l">sun</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里对于僵尸头上带的物品，及僵尸头本身，和阳光进行了标注
+保存为pvztrain.html这里我是直接放在了D:\yolov8\datasets\pvz下面</p>
+<h2 id="文件路径">文件路径</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">datasets
+</span></span><span class="line"><span class="cl">	|--coco8
+</span></span><span class="line"><span class="cl">	|__pvz
+</span></span><span class="line"><span class="cl">		|--images
+</span></span><span class="line"><span class="cl">		|--labels
+</span></span><span class="line"><span class="cl">		|__pvztrain.yaml
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里需要注意的是images和labels下面还有train和val（验证）对应数据和文件夹</p>
+<p><img src="https://s2.loli.net/2024/06/09/QwqbcDp9EFTCsmH.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="数据标注">数据标注</h2>
+<p>先把图片分成train和val两部分塞入images下两个对应文件夹，再批量重命名为序号.jpg
+然后使用labelimg进行标注，具体操作不在多说，自行参考网上教程，需要注意的是保存的文件夹设置为labels下对应文件夹，格式选择yolo格式，只需要矩形框标注即可。
+本项目提供标注好的数据集并且已经放在了对应位置可以直接使用</p>
+<h2 id="开始训练">开始训练</h2>
+<p>参考一下官网提供的示例脚本
+<img src="https://s2.loli.net/2024/06/09/8UF5EHgA361xoaZ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>我们的数据集并不大只有不到200张图片，所以不需要特意设置onnx格式提高速度并降低精度，同样对于使用模型检测一张图片也不需要，后续通过另外的脚本直接截取视频流进行检测</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">ultralytics</span> <span class="kn">import</span> <span class="n">YOLO</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">   <span class="c1"># Load model</span>
+</span></span><span class="line"><span class="cl">   <span class="n">model</span> <span class="o">=</span> <span class="n">YOLO</span><span class="p">(</span><span class="s2">&#34;yolov8n.pt&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">   <span class="c1"># Train</span>
+</span></span><span class="line"><span class="cl">   <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="s2">&#34;datasets/pvz/pvztrain.yaml&#34;</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span><span class="n">patience</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">   <span class="c1"># Validate</span>
+</span></span><span class="line"><span class="cl">   <span class="n">model</span><span class="o">.</span><span class="n">val</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">   <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#这里设置轮数为250轮以提高精度，但其实100轮后提升效果就已经区别不大，设置patience=150，即在150轮后检测如果已经无提升则直接结束训练</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>执行这个脚本，会在run路径下生成对应文件和模型
+<img src="https://s2.loli.net/2024/06/09/FsQENkwr1fK7dDM.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+如图，train下面就是模型本身，train2下面就是对于这个模型进行的各种数学评估的图片</p>
+<h1 id="测试效果">测试效果</h1>
+<p>这里对于测试模型效果，因为训练过程中就能看到拟合程度已经很高，所以直接下载了一个敲僵尸的游戏视频进行目标检测</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">ultralytics</span> <span class="kn">import</span> <span class="n">YOLO</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">cv2</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 加载YOLOv8模型</span>
+</span></span><span class="line"><span class="cl"><span class="n">model</span> <span class="o">=</span> <span class="n">YOLO</span><span class="p">(</span><span class="s1">&#39;runs/detect/train/weights/best.pt&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 打开视频文件</span>
+</span></span><span class="line"><span class="cl"><span class="n">cap</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="s1">&#39;test/test2.mp4&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 循环遍历视频帧</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="n">cap</span><span class="o">.</span><span class="n">isOpened</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 从视频读取一帧</span>
+</span></span><span class="line"><span class="cl">    <span class="n">success</span><span class="p">,</span> <span class="n">frame</span> <span class="o">=</span> <span class="n">cap</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">break</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># 在帧上运行YOLOv8检测</span>
+</span></span><span class="line"><span class="cl">    <span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># 检查是否有检测结果</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 获取框和类别信息</span>
+</span></span><span class="line"><span class="cl">        <span class="n">boxes</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">boxes</span><span class="o">.</span><span class="n">xyxy</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>  <span class="c1"># 修改为获取xyxy格式的边界框，并转换为numpy数组</span>
+</span></span><span class="line"><span class="cl">        <span class="n">classes</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">boxes</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>  <span class="c1"># 获取类别索引，并转换为numpy数组</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1"># 在帧上展示结果</span>
+</span></span><span class="line"><span class="cl">        <span class="n">annotated_frame</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>  <span class="c1"># 绘制检测结果</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1"># 展示带注释的帧</span>
+</span></span><span class="line"><span class="cl">        <span class="n">annotated_frame</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">annotated_frame</span><span class="p">,</span> <span class="p">(</span><span class="mi">640</span><span class="p">,</span> <span class="mi">480</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="s1">&#39;YOLOv8 Detection&#39;</span><span class="p">,</span> <span class="n">annotated_frame</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># 如果没有检测结果，直接展示原始帧</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="s1">&#39;YOLOv8 Detection&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># 如果按下&#39;q&#39;则退出循环</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFF</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;q&#39;</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="k">break</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 释放视频捕获对象并关闭显示窗口</span>
+</span></span><span class="line"><span class="cl"><span class="n">cap</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="n">cv2</span><span class="o">.</span><span class="n">destroyAllWindows</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://s2.loli.net/2024/06/09/5qwlXti8JkSYIHB.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>随意截取一帧，能看到识别精度很高</p>
+<p><img src="https://s2.loli.net/2024/06/09/gyMLbUh2eBcJDoK.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p>对于复杂情况，抗干扰能力也很强</p>
+<h1 id="模拟点击">模拟点击</h1>
+<p>对于模拟点击的部分，直接使用的pyautogui库模拟的点击，使用win32gui来抓取的窗口
+详细代码如下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">argparse</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">os</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">platform</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">sys</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">cv2</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">torch</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">ultralytics</span> <span class="kn">import</span> <span class="n">YOLO</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">pyautogui</span>
+</span></span><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">ImageGrab</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">win32gui</span><span class="o">,</span> <span class="nn">win32con</span><span class="o">,</span> <span class="nn">win32com.client</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">time</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">cilck_init</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="n">hwnd</span> <span class="o">=</span> <span class="n">win32gui</span><span class="o">.</span><span class="n">FindWindow</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;植物大战僵尸中文版&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">hwnd</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">shell</span> <span class="o">=</span> <span class="n">win32com</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">Dispatch</span><span class="p">(</span><span class="s2">&#34;WScript.Shell&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">shell</span><span class="o">.</span><span class="n">SendKeys</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">win32gui</span><span class="o">.</span><span class="n">SetForegroundWindow</span><span class="p">(</span><span class="n">hwnd</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">window_x</span><span class="p">,</span> <span class="n">window_y</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">=</span> <span class="n">win32gui</span><span class="o">.</span><span class="n">GetWindowRect</span><span class="p">(</span><span class="n">hwnd</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">box</span> <span class="o">=</span> <span class="p">(</span><span class="n">window_x</span><span class="p">,</span> <span class="n">window_y</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">box</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="s1">&#39;runs/detect/train/weights/best.pt&#39;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;self_data/pvz&#39;</span><span class="p">,</span> <span class="n">imgsz</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span> <span class="n">conf_thres</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">iou_thres</span><span class="o">=</span><span class="mf">0.45</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># Load model</span>
+</span></span><span class="line"><span class="cl">    <span class="n">model</span> <span class="o">=</span> <span class="n">YOLO</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># Initialize click function</span>
+</span></span><span class="line"><span class="cl">    <span class="n">box</span> <span class="o">=</span> <span class="n">cilck_init</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">num_pic</span> <span class="o">=</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="n">num_pic</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># Grab screenshot</span>
+</span></span><span class="line"><span class="cl">        <span class="n">background_bgr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ImageGrab</span><span class="o">.</span><span class="n">grab</span><span class="p">(</span><span class="n">box</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="n">background</span> <span class="o">=</span> <span class="n">background_bgr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>  <span class="c1"># Convert BGR to RGB</span>
+</span></span><span class="line"><span class="cl">        <span class="n">img_path</span> <span class="o">=</span> <span class="s1">&#39;datasets/data/pvz/test.jpg&#39;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">background</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1"># Perform inference</span>
+</span></span><span class="line"><span class="cl">        <span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">imgsz</span><span class="o">=</span><span class="n">imgsz</span><span class="p">,</span> <span class="n">conf</span><span class="o">=</span><span class="n">conf_thres</span><span class="p">,</span> <span class="n">iou</span><span class="o">=</span><span class="n">iou_thres</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1"># Process results</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="n">det</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">boxes</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">xyxy</span> <span class="o">=</span> <span class="n">det</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">conf</span> <span class="o">=</span> <span class="n">det</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">                <span class="bp">cls</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">det</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">                <span class="nb">print</span><span class="p">(</span><span class="n">xyxy</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="c1"># Use pyautogui to click on detected coordinates</span>
+</span></span><span class="line"><span class="cl">                <span class="n">pyautogui</span><span class="o">.</span><span class="n">click</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">xyxy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">xyxy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">20</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="c1"># Additional processing or saving results can be added here</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">num_pic</span> <span class="o">+=</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">#time.sleep(1)  # Add a delay to avoid excessive clicking</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--weights&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;runs/detect/train/weights/best.pt&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;model path&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--source&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;self_data/pvz&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--imgsz&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;image size&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--conf-thres&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;confidence threshold&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--iou-thres&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;IOU threshold&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">opt</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">run</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">imgsz</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">conf_thres</span><span class="p">,</span> <span class="n">opt</span><span class="o">.</span><span class="n">iou_thres</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">main</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="成果展示">成果展示</h1>
+<p><video id="movies" src="https://mp4.ziyuan.wang/view.php/e88b97cc1951a8f05773b902dd9a004f.mp4" autobuffer="true" controls="" width="1000
+%"></video></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    <div class="disqus-container">
+    <div id="disqus_thread"></div>
+<script>
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "hugo-theme-stack" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (typeof DISQUS == 'object') {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2025 Example Person
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.20.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,2361 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='红色为课程重点,其他属于了解或熟悉一下
+第一章：系统安全概述 安全属性 ●安全属性CIA
+○机密性：Confidentiality，确保信息不暴露给未授权的实体或进程
+○完整性：Integrity，信息在存储或传输时不被删除、修改、伪造、重放、插入等破坏。
+○可用性：Availablity，得到授权的主体在需要时可访问资源和服务。（拒绝服务Dos攻击就是对可用性的攻击）
+除了CIA，信息安全还有一些其他属性，这些都是对CIA属性的细化、补充或加强。 包括可控性(Controllability)、不可抵赖性(Non-Repudiation)、可追 溯性(Accountability)、可认证性(Authenticity)、可靠性(Reliability) 等。
+安全漏洞 漏洞分类 根据形成原因分四类
+代码设计与实现问题漏洞 ==安全策略与安全配置设计错误导致的漏洞== 环境问题漏洞 其他 根据利用位置分两类 漏洞生命周期 漏洞库 美国政府支持 安全组织建设 国内主要漏洞库 漏洞库常见字段（了解） 在漏洞库中，广泛使用的标准 漏洞扫描 概念 主机漏洞扫描 网络漏洞扫描 漏洞扫描器 信息系统安全中纵深防御体系中的安全策略主要包括以下几个方面：
+物理安全：物理安全是纵深防御的基础，主要保护信息系统的硬件设施和数据免受物理攻击。物理安全措施包括：
+建立完善的物理访问控制系统，控制人员、车辆等的进出。 配备视频监控系统，对重要区域进行监控。 采用防火、防盗、防水等措施，保护信息系统免受自然灾害和意外事故的影响。 网络安全：网络安全是纵深防御的重要环节，主要保护信息系统免受网络攻击。网络安全措施包括：
+部署防火墙、入侵检测系统（IDS）等安全设备，阻止未经授权的访问和恶意攻击。 采用加密技术保护敏感数据。 定期进行漏洞扫描和补丁修复。 主机安全：主机安全是纵深防御的关键环节，主要保护信息系统的主机免受恶意软件、病毒等攻击。主机安全措施包括：
+部署杀毒软件、防火墙等安全软件。 严格控制软件安装和升级。 定期备份数据。 应用安全：应用安全是纵深防御的最后一道防线，主要保护信息系统的应用程序免受攻击。应用安全措施包括：
+对应用程序进行安全审计，发现和修复漏洞。 采用数据库安全措施，保护数据库免受攻击。 实施访问控制，控制对应用程序的访问。 数据安全：数据安全是纵深防御的核心，主要保护信息系统的数据免受泄露、篡改等攻击。数据安全措施包括：
+采用加密技术保护敏感数据。 实施访问控制，控制对数据的访问。 定期备份数据，防止数据丢失。 纵深防御体系的建设是一个动态的过程，需要根据信息系统的实际情况不断调整和完善。在建设纵深防御体系时，需要注意以下几点：
+综合考虑：纵深防御体系是一个多层次、多维度的安全体系，需要综合考虑物理安全、网络安全、主机安全、应用安全和数据安全等各个方面。 互补性：纵深防御体系中的各个安全措施应该具有互补性，相互支持和补充。 可持续性：纵深防御体系应该具有可持续性，能够随着威胁形势的变化不断进行更新和完善。 第二章 系统安全管理 '>
+<title>信息系统安全复习</title>
+
+<link rel='canonical' href='http://blog.pan0624.top/p/%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E5%A4%8D%E4%B9%A0/'>
+
+<link rel="stylesheet" href="/scss/style.min.abbd69b2908fdfcd5179898beaafd374514a86538d81639ddd2c58c06ae54e40.css"><meta property='og:title' content='信息系统安全复习'>
+<meta property='og:description' content='红色为课程重点,其他属于了解或熟悉一下
+第一章：系统安全概述 安全属性 ●安全属性CIA
+○机密性：Confidentiality，确保信息不暴露给未授权的实体或进程
+○完整性：Integrity，信息在存储或传输时不被删除、修改、伪造、重放、插入等破坏。
+○可用性：Availablity，得到授权的主体在需要时可访问资源和服务。（拒绝服务Dos攻击就是对可用性的攻击）
+除了CIA，信息安全还有一些其他属性，这些都是对CIA属性的细化、补充或加强。 包括可控性(Controllability)、不可抵赖性(Non-Repudiation)、可追 溯性(Accountability)、可认证性(Authenticity)、可靠性(Reliability) 等。
+安全漏洞 漏洞分类 根据形成原因分四类
+代码设计与实现问题漏洞 ==安全策略与安全配置设计错误导致的漏洞== 环境问题漏洞 其他 根据利用位置分两类 漏洞生命周期 漏洞库 美国政府支持 安全组织建设 国内主要漏洞库 漏洞库常见字段（了解） 在漏洞库中，广泛使用的标准 漏洞扫描 概念 主机漏洞扫描 网络漏洞扫描 漏洞扫描器 信息系统安全中纵深防御体系中的安全策略主要包括以下几个方面：
+物理安全：物理安全是纵深防御的基础，主要保护信息系统的硬件设施和数据免受物理攻击。物理安全措施包括：
+建立完善的物理访问控制系统，控制人员、车辆等的进出。 配备视频监控系统，对重要区域进行监控。 采用防火、防盗、防水等措施，保护信息系统免受自然灾害和意外事故的影响。 网络安全：网络安全是纵深防御的重要环节，主要保护信息系统免受网络攻击。网络安全措施包括：
+部署防火墙、入侵检测系统（IDS）等安全设备，阻止未经授权的访问和恶意攻击。 采用加密技术保护敏感数据。 定期进行漏洞扫描和补丁修复。 主机安全：主机安全是纵深防御的关键环节，主要保护信息系统的主机免受恶意软件、病毒等攻击。主机安全措施包括：
+部署杀毒软件、防火墙等安全软件。 严格控制软件安装和升级。 定期备份数据。 应用安全：应用安全是纵深防御的最后一道防线，主要保护信息系统的应用程序免受攻击。应用安全措施包括：
+对应用程序进行安全审计，发现和修复漏洞。 采用数据库安全措施，保护数据库免受攻击。 实施访问控制，控制对应用程序的访问。 数据安全：数据安全是纵深防御的核心，主要保护信息系统的数据免受泄露、篡改等攻击。数据安全措施包括：
+采用加密技术保护敏感数据。 实施访问控制，控制对数据的访问。 定期备份数据，防止数据丢失。 纵深防御体系的建设是一个动态的过程，需要根据信息系统的实际情况不断调整和完善。在建设纵深防御体系时，需要注意以下几点：
+综合考虑：纵深防御体系是一个多层次、多维度的安全体系，需要综合考虑物理安全、网络安全、主机安全、应用安全和数据安全等各个方面。 互补性：纵深防御体系中的各个安全措施应该具有互补性，相互支持和补充。 可持续性：纵深防御体系应该具有可持续性，能够随着威胁形势的变化不断进行更新和完善。 第二章 系统安全管理 '>
+<meta property='og:url' content='http://blog.pan0624.top/p/%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E5%A4%8D%E4%B9%A0/'>
+<meta property='og:site_name' content='pan_0624的个人博客'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' />
+<meta name="twitter:title" content="信息系统安全复习">
+<meta name="twitter:description" content="红色为课程重点,其他属于了解或熟悉一下
+第一章：系统安全概述 安全属性 ●安全属性CIA
+○机密性：Confidentiality，确保信息不暴露给未授权的实体或进程
+○完整性：Integrity，信息在存储或传输时不被删除、修改、伪造、重放、插入等破坏。
+○可用性：Availablity，得到授权的主体在需要时可访问资源和服务。（拒绝服务Dos攻击就是对可用性的攻击）
+除了CIA，信息安全还有一些其他属性，这些都是对CIA属性的细化、补充或加强。 包括可控性(Controllability)、不可抵赖性(Non-Repudiation)、可追 溯性(Accountability)、可认证性(Authenticity)、可靠性(Reliability) 等。
+安全漏洞 漏洞分类 根据形成原因分四类
+代码设计与实现问题漏洞 ==安全策略与安全配置设计错误导致的漏洞== 环境问题漏洞 其他 根据利用位置分两类 漏洞生命周期 漏洞库 美国政府支持 安全组织建设 国内主要漏洞库 漏洞库常见字段（了解） 在漏洞库中，广泛使用的标准 漏洞扫描 概念 主机漏洞扫描 网络漏洞扫描 漏洞扫描器 信息系统安全中纵深防御体系中的安全策略主要包括以下几个方面：
+物理安全：物理安全是纵深防御的基础，主要保护信息系统的硬件设施和数据免受物理攻击。物理安全措施包括：
+建立完善的物理访问控制系统，控制人员、车辆等的进出。 配备视频监控系统，对重要区域进行监控。 采用防火、防盗、防水等措施，保护信息系统免受自然灾害和意外事故的影响。 网络安全：网络安全是纵深防御的重要环节，主要保护信息系统免受网络攻击。网络安全措施包括：
+部署防火墙、入侵检测系统（IDS）等安全设备，阻止未经授权的访问和恶意攻击。 采用加密技术保护敏感数据。 定期进行漏洞扫描和补丁修复。 主机安全：主机安全是纵深防御的关键环节，主要保护信息系统的主机免受恶意软件、病毒等攻击。主机安全措施包括：
+部署杀毒软件、防火墙等安全软件。 严格控制软件安装和升级。 定期备份数据。 应用安全：应用安全是纵深防御的最后一道防线，主要保护信息系统的应用程序免受攻击。应用安全措施包括：
+对应用程序进行安全审计，发现和修复漏洞。 采用数据库安全措施，保护数据库免受攻击。 实施访问控制，控制对应用程序的访问。 数据安全：数据安全是纵深防御的核心，主要保护信息系统的数据免受泄露、篡改等攻击。数据安全措施包括：
+采用加密技术保护敏感数据。 实施访问控制，控制对数据的访问。 定期备份数据，防止数据丢失。 纵深防御体系的建设是一个动态的过程，需要根据信息系统的实际情况不断调整和完善。在建设纵深防御体系时，需要注意以下几点：
+综合考虑：纵深防御体系是一个多层次、多维度的安全体系，需要综合考虑物理安全、网络安全、主机安全、应用安全和数据安全等各个方面。 互补性：纵深防御体系中的各个安全措施应该具有互补性，相互支持和补充。 可持续性：纵深防御体系应该具有可持续性，能够随着威胁形势的变化不断进行更新和完善。 第二章 系统安全管理 ">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                    
+                
+                </a>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">pan_0624的个人博客</a></h1>
+            <h2 class="site-description">人最大的敌人就是自身的惯性</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        href='https://github.com/pan0624'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg class="icon" width="24px" height="24.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M850.346667 155.008a42.666667 42.666667 0 0 0-22.741334-23.509333c-8.704-3.754667-85.717333-33.322667-200.32 39.168H396.714667c-114.773333-72.618667-191.701333-42.922667-200.32-39.168a42.88 42.88 0 0 0-22.741334 23.466666c-26.197333 66.218667-18.048 136.448-7.850666 176.896C134.272 374.016 128 413.098667 128 469.333333c0 177.877333 127.104 227.882667 226.730667 246.272a189.568 189.568 0 0 0-13.013334 46.549334A44.373333 44.373333 0 0 0 341.333333 768v38.613333c-19.498667-4.138667-41.002667-11.946667-55.168-26.112C238.08 732.416 188.330667 682.666667 128 682.666667v85.333333c25.002667 0 65.365333 40.362667 97.834667 72.832 51.029333 51.029333 129.066667 55.253333 153.386666 55.253333 3.114667 0 5.376-0.085333 6.528-0.128A42.666667 42.666667 0 0 0 426.666667 853.333333v-82.090666c4.266667-24.746667 20.224-49.621333 27.946666-56.362667a42.666667 42.666667 0 0 0-23.125333-74.581333C293.333333 624.554667 213.333333 591.488 213.333333 469.333333c0-53.12 5.632-70.741333 31.573334-99.285333 11.008-12.117333 14.08-29.568 7.978666-44.8-4.821333-11.904-18.773333-65.450667-6.485333-117.546667 20.650667-1.578667 59.904 4.565333 113.706667 40.96C367.104 253.44 375.466667 256 384 256h256a42.666667 42.666667 0 0 0 23.936-7.338667c54.016-36.522667 92.970667-41.770667 113.664-41.130666 12.330667 52.224-1.578667 105.770667-6.4 117.674666a42.666667 42.666667 0 0 0 8.021333 44.928C805.077333 398.464 810.666667 416.085333 810.666667 469.333333c0 122.581333-79.957333 155.52-218.069334 170.922667a42.666667 42.666667 0 0 0-23.125333 74.709333c19.797333 17.066667 27.861333 32.469333 27.861333 53.034667v128h85.333334v-128c0-20.437333-3.925333-38.101333-9.770667-53.12C769.92 695.765333 896 643.712 896 469.333333c0-56.362667-6.272-95.530667-37.76-137.514666 10.197333-40.405333 18.261333-110.506667-7.893333-176.810667z" fill="currentColor"></path></svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='mailto:pan_0623@outlook.com'
+                        target="_blank"
+                        title="Email"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg class="icon" width="24px" height="24.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M874.666667 181.333333H149.333333c-40.533333 0-74.666667 34.133333-74.666666 74.666667v512c0 40.533333 34.133333 74.666667 74.666666 74.666667h725.333334c40.533333 0 74.666667-34.133333 74.666666-74.666667V256c0-40.533333-34.133333-74.666667-74.666666-74.666667z m-725.333334 64h725.333334c6.4 0 10.666667 4.266667 10.666666 10.666667v25.6L512 516.266667l-373.333333-234.666667V256c0-6.4 4.266667-10.666667 10.666666-10.666667z m725.333334 533.333334H149.333333c-6.4 0-10.666667-4.266667-10.666666-10.666667V356.266667l356.266666 224c4.266667 4.266667 10.666667 4.266667 17.066667 4.266666s12.8-2.133333 17.066667-4.266666l356.266666-224V768c0 6.4-4.266667 10.666667-10.666666 10.666667z" fill="currentColor"></path></svg>
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%8F%8B%E9%93%BE/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友链</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+                <li id="i18n-switch">  
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                    <select name="language" onchange="window.location.href = this.selectedOptions[0].value">
+                        
+                            <option value="http://blog.pan0624.top/" selected></option>
+                        
+                    </select>
+                </li>
+            
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>Dark Mode</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#安全属性">安全属性</a></li>
+    <li><a href="#安全漏洞">安全漏洞</a>
+      <ol>
+        <li><a href="#漏洞分类">漏洞分类</a></li>
+        <li><a href="#漏洞生命周期">漏洞生命周期</a></li>
+        <li><a href="#漏洞库">漏洞库</a></li>
+        <li><a href="#漏洞扫描">漏洞扫描</a>
+          <ol>
+            <li><a href="#主机漏洞扫描">主机漏洞扫描</a></li>
+            <li><a href="#网络漏洞扫描">网络漏洞扫描</a></li>
+          </ol>
+        </li>
+        <li><a href="#漏洞扫描器">漏洞扫描器</a></li>
+      </ol>
+    </li>
+  </ol>
+
+  <ol>
+    <li><a href="#pcda管理流程">PCDA管理流程</a></li>
+    <li><a href="#活动目录设计及关键机制">活动目录设计及关键机制：</a>
+      <ol>
+        <li><a href="#活动目录ad简介">活动目录（AD）简介</a>
+          <ol>
+            <li><a href="#单点登录">单点登录</a></li>
+            <li><a href="#全局目录gc登录查询">全局目录GC(登录、查询)</a></li>
+            <li><a href="#多主复制">多主复制</a></li>
+            <li><a href="#组策略">组策略</a></li>
+            <li><a href="#逻辑管理组件">逻辑管理组件</a></li>
+            <li><a href="#物理组件-站点">物理组件-站点</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li><a href="#组策略-1">组策略</a>
+      <ol>
+        <li><a href="#组策略的设置对象">组策略的设置对象</a></li>
+        <li><a href="#组策略处理和优先级重点">组策略处理和优先级(重点)</a></li>
+        <li><a href="#组策略的冲突解决方法">组策略的冲突解决方法</a>
+          <ol>
+            <li><a href="#纵向冲突处理">纵向冲突处理</a></li>
+            <li><a href="#横向冲突处理">横向冲突处理</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+
+  <ol>
+    <li>
+      <ol>
+        <li><a href="#公钥基础架构pki">公钥基础架构PKI</a>
+          <ol>
+            <li><a href="#概念">概念</a></li>
+            <li><a href="#密钥生命周期">密钥生命周期</a></li>
+            <li><a href="#pki的组件">PKI的组件</a></li>
+            <li><a href="#pki功能">PKI功能</a></li>
+          </ol>
+        </li>
+        <li><a href="#ca建立信任的方式">CA建立信任的方式</a></li>
+        <li><a href="#数字证书及证书验证">数字证书及证书验证</a>
+          <ol>
+            <li><a href="#数字证书">数字证书</a></li>
+            <li><a href="#证书验证">证书验证</a></li>
+          </ol>
+        </li>
+        <li><a href="#pki的安全性">PKI的安全性</a></li>
+      </ol>
+    </li>
+  </ol>
+
+  <ol>
+    <li>
+      <ol>
+        <li><a href="#基于文本口令认证的安全机制">基于文本口令认证的安全机制</a></li>
+        <li><a href="#基于密码学的认证协议能分析协议根据需要设计协议">基于密码学的认证协议（能分析协议，根据需要设计协议）</a></li>
+        <li><a href="#基于设备的验证及其案例-rfid扫码验证">基于设备的验证及其案例 （RFID，扫码验证）</a>
+          <ol>
+            <li><a href="#例子">例子</a></li>
+          </ol>
+        </li>
+        <li><a href="#现实中的认证与密钥交换协议kerberos">现实中的认证与密钥交换协议（kerberos）</a></li>
+      </ol>
+    </li>
+  </ol>
+
+  <ol>
+    <li><a href="#自主访问控制">自主访问控制</a></li>
+    <li><a href="#强制访问控制">强制访问控制</a></li>
+    <li><a href="#基于角色访问控制">基于角色访问控制</a></li>
+    <li><a href="#基于属性访问控制">基于属性访问控制</a></li>
+  </ol>
+
+  <ol>
+    <li><a href="#数据存储加密">数据存储加密</a></li>
+    <li><a href="#系统可靠性与数据容错">系统可靠性与数据容错</a>
+      <ol>
+        <li><a href="#数据备份的策略及raid机制的几种备份机制">数据备份的策略，及RAID机制的几种备份机制</a></li>
+        <li><a href="#数据恢复机制基于备份的和非备份的">数据恢复机制（基于备份的和非备份的）</a></li>
+      </ol>
+    </li>
+    <li><a href="#隐私保护技术">隐私保护技术</a>
+      <ol>
+        <li><a href="#匿名化基本原理和方法">匿名化基本原理和方法</a></li>
+        <li><a href="#差分隐私原理加什么噪声不同敏感度函数的适用场景以数值型为例去分析">差分隐私原理（加什么噪声、不同敏感度函数的适用场景）以数值型为例去分析</a></li>
+        <li><a href="#同态加密的基本思想">同态加密的基本思想</a></li>
+      </ol>
+    </li>
+  </ol>
+
+  <ol>
+    <li><a href="#比较">比较</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/code/" >
+                Code
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/%E4%BF%A1%E6%81%AF%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8%E5%A4%8D%E4%B9%A0/">信息系统安全复习</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    3 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p><font color=red>红色</font>为课程<strong>重点</strong>,其他属于了解或熟悉一下</p>
+<h1 id="第一章系统安全概述">第一章：系统安全概述</h1>
+<p><img src="https://s2.loli.net/2024/01/05/PxtbMDXN7gSfjJE.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="安全属性">安全属性</h2>
+<p><strong>●安全属性CIA</strong></p>
+<p><strong>○机密性</strong>：Confidentiality，确保信息不暴露给未授权的实体或进程</p>
+<p><strong>○完整性</strong>：Integrity，信息在存储或传输时不被删除、修改、伪造、重放、插入等破坏。</p>
+<p><strong>○可用性</strong>：Availablity，得到授权的主体在需要时可访问资源和服务。（拒绝服务Dos攻击就是对可用性的攻击）</p>
+<p>除了CIA，信息安全还有一些其他属性，这些都是对CIA属性的细化、补充或加强。
+包括可控性(Controllability)、不可抵赖性(Non-Repudiation)、可追 溯性(Accountability)、可认证性(Authenticity)、可靠性(Reliability) 等。</p>
+<p><img src="https://s2.loli.net/2024/01/05/d3f4vXtGr6YlbMR.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="安全漏洞">安全漏洞</h2>
+<h3 id="漏洞分类">漏洞分类</h3>
+<p>根据形成原因分四类</p>
+<ul>
+<li>代码设计与实现问题漏洞
+<img src="https://s2.loli.net/2024/01/05/NlSAZU8M2LqJx4K.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+<li>==安全策略与安全配置设计错误导致的漏洞==
+<img src="https://s2.loli.net/2024/01/05/l5KPUeVtHAhWMBE.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+<li>环境问题漏洞
+<img src="https://s2.loli.net/2024/01/05/TwEZclPoshfrp8I.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+<li>其他
+<img src="https://s2.loli.net/2024/01/05/u1Sdc3F9NmpMgnD.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+</ul>
+<p>根据利用位置分两类
+<img src="https://s2.loli.net/2024/01/05/18fYMxIAHSDoJa9.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="漏洞生命周期">漏洞生命周期</h3>
+<p><img src="https://s2.loli.net/2024/01/05/jpFxRwsB5l3rHLN.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="漏洞库">漏洞库</h3>
+<ul>
+<li>
+<p>美国政府支持
+<img src="https://s2.loli.net/2024/01/05/uAZ4wqrtKGOh7vU.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+</li>
+<li>
+<p>安全组织建设
+<img src="https://s2.loli.net/2024/01/05/9ehS8BkCTzKqfHX.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+</li>
+<li>
+<p>国内主要漏洞库
+<img src="https://s2.loli.net/2024/01/05/lRoxGCAp6q9tKWj.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+</li>
+</ul>
+<p>漏洞库常见字段（了解）
+<img src="https://s2.loli.net/2024/01/05/xAT14rPRwafdGIs.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<ul>
+<li>在漏洞库中，广泛使用的标准
+<img src="https://s2.loli.net/2024/01/05/d8vePbE3CZxq4NR.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+</ul>
+<h3 id="漏洞扫描">漏洞扫描</h3>
+<p>概念
+<img src="https://s2.loli.net/2024/01/05/SD35RpVb476OfQt.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h4 id="主机漏洞扫描">主机漏洞扫描</h4>
+<p><img src="https://s2.loli.net/2024/01/05/VthBoilMmNECba4.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h4 id="网络漏洞扫描">网络漏洞扫描</h4>
+<p><img src="https://s2.loli.net/2024/01/05/9G3ltDO8uCB46iI.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="漏洞扫描器">漏洞扫描器</h3>
+<p><img src="https://s2.loli.net/2024/01/05/M4VjqcaCbThlwts.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/01/05/NfgD9Y7Ha24zPdu.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png|500"
+	
+	
+></p>
+<p>信息系统安全中纵深防御体系中的安全策略主要包括以下几个方面：</p>
+<ul>
+<li>
+<p><strong>物理安全</strong>：物理安全是纵深防御的基础，主要保护信息系统的硬件设施和数据免受物理攻击。物理安全措施包括：</p>
+<ul>
+<li>建立完善的物理访问控制系统，控制人员、车辆等的进出。</li>
+<li>配备视频监控系统，对重要区域进行监控。</li>
+<li>采用防火、防盗、防水等措施，保护信息系统免受自然灾害和意外事故的影响。</li>
+</ul>
+</li>
+<li>
+<p><strong>网络安全</strong>：网络安全是纵深防御的重要环节，主要保护信息系统免受网络攻击。网络安全措施包括：</p>
+<ul>
+<li>部署防火墙、入侵检测系统（IDS）等安全设备，阻止未经授权的访问和恶意攻击。</li>
+<li>采用加密技术保护敏感数据。</li>
+<li>定期进行漏洞扫描和补丁修复。</li>
+</ul>
+</li>
+<li>
+<p><strong>主机安全</strong>：主机安全是纵深防御的关键环节，主要保护信息系统的主机免受恶意软件、病毒等攻击。主机安全措施包括：</p>
+<ul>
+<li>部署杀毒软件、防火墙等安全软件。</li>
+<li>严格控制软件安装和升级。</li>
+<li>定期备份数据。</li>
+</ul>
+</li>
+<li>
+<p><strong>应用安全</strong>：应用安全是纵深防御的最后一道防线，主要保护信息系统的应用程序免受攻击。应用安全措施包括：</p>
+<ul>
+<li>对应用程序进行安全审计，发现和修复漏洞。</li>
+<li>采用数据库安全措施，保护数据库免受攻击。</li>
+<li>实施访问控制，控制对应用程序的访问。</li>
+</ul>
+</li>
+<li>
+<p><strong>数据安全</strong>：数据安全是纵深防御的核心，主要保护信息系统的数据免受泄露、篡改等攻击。数据安全措施包括：</p>
+<ul>
+<li>采用加密技术保护敏感数据。</li>
+<li>实施访问控制，控制对数据的访问。</li>
+<li>定期备份数据，防止数据丢失。</li>
+</ul>
+</li>
+</ul>
+<p>纵深防御体系的建设是一个动态的过程，需要根据信息系统的实际情况不断调整和完善。在建设纵深防御体系时，需要注意以下几点：</p>
+<ul>
+<li><strong>综合考虑</strong>：纵深防御体系是一个多层次、多维度的安全体系，需要综合考虑物理安全、网络安全、主机安全、应用安全和数据安全等各个方面。</li>
+<li><strong>互补性</strong>：纵深防御体系中的各个安全措施应该具有互补性，相互支持和补充。</li>
+<li><strong>可持续性</strong>：纵深防御体系应该具有可持续性，能够随着威胁形势的变化不断进行更新和完善。</li>
+</ul>
+<h1 id="第二章-系统安全管理">第二章 系统安全管理</h1>
+<p><img src="https://s2.loli.net/2024/01/05/tHGWYUbRnsMpyaf.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="pcda管理流程">PCDA管理流程</h2>
+<p>四个阶段及主要工作</p>
+<ol>
+<li>
+<p>计划(Plan): 建立与组织总体战略、目标和方针保持一致的信息安全管理方 针、策略，通过风险评估建立控制目标和方式，指定风险处理计划。</p>
+</li>
+<li>
+<p>实施(Do): 按照控制目标和方式实施信息安全管理，开展全员安全培训，实 施安全控制。</p>
+</li>
+<li>
+<p>检查(Check): 对照信息安全管理体系的方针、目标，对信息安全管理进行 监视和验证，评审ISMS的有效性和适当性。</p>
+</li>
+<li>
+<p>处理(Act): 基于上述对体系的内部审核和管理评价的结果，采取纠正和预 防措施，以持续改进组织的信息安全管理体系。</p>
+</li>
+</ol>
+<p><img src="https://s2.loli.net/2024/01/05/vCuqrK2inJ3PlUm.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="活动目录设计及关键机制">活动目录设计及关键机制：</h2>
+<p><img src="https://s2.loli.net/2024/01/05/indbA1kSsoTreuN.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="活动目录ad简介">活动目录（AD）简介</h3>
+<p>什么是活动目录: 指域环境中提供目录服务的组件 活动目录的特点:</p>
+<ul>
+<li>不仅存储网络对象信息，还提供了目录服务</li>
+<li>为企业提供网络环境中的集中式管理机制</li>
+<li>使企业网络具有极强的可拓展性</li>
+</ul>
+<p>完成单域及多域环境下活动目录管理功能的机制:</p>
+<ul>
+<li>单点目录</li>
+<li>全局目录</li>
+<li>智能的信息复制(多主复制)</li>
+<li>组策略:可在不同层次上定义控制规则</li>
+</ul>
+<h4 id="单点登录">单点登录</h4>
+<p>什么是单点登录(SSO) :
+多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统</p>
+<p>单点登录的特点:</p>
+<ul>
+<li>在用户模式下，安全子系统是运行活动目录服务的真正子系统</li>
+<li>在内核模式下，安全引用监视器执行安全子系统规则
+<img src="https://s2.loli.net/2024/01/05/93kwGMvOW6XBtpy.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+</ul>
+<h4 id="全局目录gc登录查询">全局目录GC(登录、查询)</h4>
+<p>什么是全局目录GC:
+全局目录是一个域树或者域森林中所有对象信息的中心仓库。
+他记录了AD中所有域对象的部分信息以及架构信息和配置信息的完整副本。</p>
+<p><strong>活动目录保存的信息</strong></p>
+<ul>
+<li>
+<p>每个域控制器活动目录中保存的信息被分成三类:域数据、架构和配置数据</p>
+<ul>
+<li>
+<p>域数据 :包含该域内所有对象的信息，这些信息被复制到该域的每 个域控制器(不超出该域的范围)</p>
+</li>
+<li>
+<p>架构数据 :定义了可在Active Directory中存储哪些对象、属性和操 作规则。属于目录林的范畴，在林中的每一个域控制器上存储。</p>
+</li>
+<li>
+<p>配置数据 :定义了复制拓扑及与AD配置有关的其他数据(即其中存在 哪些域，域控制器的位置等等)，对域森林中所有域通用，也被复制到森林的所有域控制器。</p>
+</li>
+<li>
+<p>设域控制器是GC服务器，还将保存第四种信息</p>
+<ul>
+<li>为所有域保存“域数据”的部分副本(GC保存的属性子集包括那些在搜索 操作中最常用的属性)</li>
+</ul>
+</li>
+<li>
+<p>同一个域中的计算机共享配置，架构和全局编录GC</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>全局目录的关键目录任务:登录和查询</strong></p>
+<ul>
+<li>登录 : 客户登录时，向域控制器提供通用组成员信息。用户登录网络时，必须存在一 台全局编录服务器，否则只能登录到本地。</li>
+<li>查询 : 用户在发出查询请求时首先会送到最近的全局编录(GC)，通常GC可满足绝 大部分查询，当查询对象不在GC中时，服务器会将查询转至对象所在域。从而实现跨所有 域的搜索</li>
+</ul>
+<h4 id="多主复制">多主复制</h4>
+<p>什么是多主复制 :
+通过安装域控制器，可在整个网络环境中创建目录的多分副本。</p>
+<p>多 主 复 制 的 特 点 :
+网络任何地方发生变化都会在整个网络中自动复制，保证数据的 一致性。</p>
+<h4 id="组策略">组策略</h4>
+<p>组策略功能 : 可在不同层次上定义控制规则</p>
+<h4 id="逻辑管理组件">逻辑管理组件</h4>
+<p>AD的逻辑管理组件包括：</p>
+<ul>
+<li>域控制器：域控制器是AD的核心组件，负责存储目录数据、提供认证和访问控制服务。</li>
+<li>全局目录服务器：全局目录服务器存储域内的所有用户、计算机和其他资源信息。</li>
+<li>域名服务器：域名服务器负责提供DNS服务。</li>
+<li>轻量目录服务器：轻量目录服务器用于存储小型域或分支机构的目录数据。</li>
+</ul>
+<p>在设计AD时，需要考虑以下逻辑管理组件安全问题：</p>
+<ul>
+<li>为域控制器配置高可用性。</li>
+<li>为域控制器配置安全措施，例如防火墙、入侵检测系统等。</li>
+<li>为全局目录服务器配置安全措施，例如防火墙、入侵检测系统等。</li>
+<li>为域名服务器配置安全措施，例如防火墙、入侵检测系统等。</li>
+</ul>
+<h4 id="物理组件-站点">物理组件-站点</h4>
+<p>定义
+<img src="https://s2.loli.net/2024/01/05/17iANutzEdFsYfk.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><strong>活动目录复制</strong></p>
+<ul>
+<li>
+<p>站点内复制
+<img src="https://s2.loli.net/2024/01/05/WL8SdpHNMKqhBgi.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+</li>
+<li>
+<p>站点间复制
+<img src="https://s2.loli.net/2024/01/05/HdANWLDp9M4yP8i.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+</li>
+<li>
+<p>站点间链接
+<img src="https://s2.loli.net/2024/01/05/Pb7fCz8cMYqtek4.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+</li>
+</ul>
+<p><strong>总结</strong>
+<img src="https://s2.loli.net/2024/01/05/b5sNwWyCDZRAHg9.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="组策略-1">组策略</h2>
+<h3 id="组策略的设置对象">组策略的设置对象</h3>
+<p><strong>组策略设置对象:</strong></p>
+<p>在域中，设置对象有 :站点，域，组织单元(OU)</p>
+<p><strong>设置方法:</strong></p>
+<ul>
+<li>可以将一个组策略链接多个站点，域，组织单元(OU)</li>
+<li>可以将多个策略连接到同一个站点域，组织单元(OU)</li>
+</ul>
+<p><strong>对于本地计算机:</strong> 如果不在域中的计算机可以利用本地组策略(本地策略)管理计 算机
+<img src="https://s2.loli.net/2024/01/05/cDI4wHX8URokrzh.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="组策略处理和优先级重点">组策略处理和优先级(重点)</h3>
+<p><strong>组策略的继承及冲突解决:</strong></p>
+<ul>
+<li>默认情况下，子策略基础父容器的策略设置。</li>
+<li>子容器的设置优于与从父容器继承下来的设置，如果有重叠且不兼容，那么子容器将覆盖父容器的设置。</li>
+<li>如果兼容，那么子容器将继承父容器的设置，并与自身的设置合并。</li>
+</ul>
+<p><strong>组策略的纵向处理(默认处理):</strong></p>
+<ul>
+<li>处理顺序:
+<ol>
+<li>本地策略对象</li>
+<li>链接在站点上的GPO对象(组策略对象)</li>
+<li>链接在域上的GPO对象(组策略对象)</li>
+<li>连接在OU(组织单元)上的GPO对象(组策略对象)</li>
+</ol>
+</li>
+</ul>
+<p>在OU组策略对象中仍会细分，处理顺序依次是:
+最高级OU的GPO—&gt;子级OU的GPO—&gt;最低级OU的GPO</p>
+<ul>
+<li>
+<p>处理注意点:</p>
+<ul>
+<li>排在处理顺序后面的GPO， 拥有最高的优先级</li>
+<li>工作组成员只处理本地组策略对象</li>
+</ul>
+</li>
+<li>
+<p>下图为处理例子:
+这里A6属于本地策略对象，所以优先处理 优先级的顺序与处理顺序相反
+<img src="https://s2.loli.net/2024/01/05/vAD3GPSplsu1Uq8.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+</li>
+</ul>
+<p><strong>在纵向处理中组策略的例外处理:</strong></p>
+<ol>
+<li>
+<p>“禁止替代”选项(强制)
+在组策略对象GPO属性上设置</p>
+<p>目 的 : 防止随后的处理组策略对象覆盖该组策略对象中的所有策略设置</p>
+<p>冲 突 解 决 : 有多个组策略对象设置为“禁止替代”时，如果发生冲突，那么就会优先采 用在活动目录层次结构中处于最高层的那一个。</p>
+<ol>
+<li>阻止策略继承</li>
+</ol>
+<p>容器属性上的设置</p>
+<ul>
+<li>介 绍 : 在任何一个站点、域或组织单元上，容器都可以被选择性的标记为“阻止策略 继承”，来禁止从父目录容器继承组策略。但是，设置为“禁止替代”的组策略对象链接将始 终都会被采用，且不能阻止。</li>
+</ul>
+</li>
+</ol>
+<p><strong>用户配置的横向冲突处理:</strong></p>
+<p>环回处理(横向冲突处理)</p>
+<p>基本原理:</p>
+<p>组策略分为俩部分，上班部分是计算机策略，下半部分是用户策略，域中用户如果从
+域的不同位置的计算机登陆系统，正常情况下，组策略按以下顺序执行:</p>
+<ul>
+<li>
+<ol>
+<li>执行computer的策略基于computer OU的计算机策略</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>执行user的策略基于user OU的用户策略</li>
+</ol>
+</li>
+</ul>
+<p>环回处理就是让用户策略是基于计算机的OU的user policy，或以计算机OU的user policy为主(==提升计算机OU的user policy级别==)</p>
+<p>功能:</p>
+<ul>
+<li>替换模式: 在系统启动时计算机所在容器的GPO列表完全替代用户所在容器的 GPO策略列表</li>
+<li>合并模式: 计算机容器的GPO用户策略列表添加到用户容器的GPO用户策略列 表之后，所以，有冲突的话，计算机容器的用户策略权限具有更高的优先权</li>
+</ul>
+<p>带筛选约束的策略(非重点)</p>
+<p>主 要 功 能 : 可以对策略能施加的用户和计算机做过滤</p>
+<p>俩种筛选方法: 安全筛选和WMI筛选</p>
+<ul>
+<li>安 全 筛 选 原 理 :利用访问控制，安全筛选用于精确定义哪些用户和计算机可应用组 策略对象(GPO)中的设置。</li>
+<li>WMI筛 选 原 理 : 结合WMI筛选器，将组策略只应用在组织单位中特定的计算机类别 或用户属性上。</li>
+</ul>
+<h3 id="组策略的冲突解决方法">组策略的冲突解决方法</h3>
+<h4 id="纵向冲突处理">纵向冲突处理</h4>
+<ul>
+<li>
+<ol>
+<li>“禁止替代”选项 :用以防止随后的处理的组策略对象覆盖该组策略对象中的所 有策略设置。</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>阻止策略继承:禁止从父目录容器继承组策略。</li>
+</ol>
+</li>
+</ul>
+<h4 id="横向冲突处理">横向冲突处理</h4>
+<p>主要是用到了环回处理，即提升计算机OU的user policy级别 环回处理共有以下模式:</p>
+<ul>
+<li>
+<ol>
+<li>替换模式 :指在系统启动时计算机所在容器的GPO列表完全替代用户所在容 器的GPO策略列表。</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>合并模式 :计算机容器的GPO用户策略列表添加到用户容器的GPO用户策略 列表之后，有冲突时，计算机容器的用户策略权限具有更高的优先权。</li>
+</ol>
+</li>
+</ul>
+<h1 id="第三章-密钥管理框架结构">第三章 密钥管理框架结构</h1>
+<p><img src="https://s2.loli.net/2024/01/05/NPcdwmeqjxfAz1l.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="公钥基础架构pki">公钥基础架构PKI</h3>
+<h4 id="概念">概念</h4>
+<p>公钥基础架构PKI是一个安全基础设施，是一个包括硬件、软件、人员、策略和规程 的集合。用来实现基于公钥密码体制的密钥和证书的产生、管理、存储、分发和撤销等 功能</p>
+<h4 id="密钥生命周期">密钥生命周期</h4>
+<p>密钥产生，证书签发，密钥使用，证书检验，密钥过期，密钥更新</p>
+<h4 id="pki的组件">PKI的组件</h4>
+<ul>
+<li>用户:使用者，验证者</li>
+<li>证书签发机构(CA) :是公钥基础设施中受信任的第三方实体，是信任的起点， 向主体颁发证书，证书吊销列表CL,续借和更新证书</li>
+<li>证书注册机构(RA) :RA主要用于在证书登记过程中核实证书申请者的身份， 有的架构中，CA也委派给RA一些其他责任，像个人认证，吊销报告、密钥生 成、存储密钥对。</li>
+<li>证书库 :CA系统中活动的数字证书的数据库，主要存储CA颁发证书和证书撤 销列表(CRL)</li>
+<li>档案库 :主要任务是储存和保护充足的信息来决定在一份旧的文档中数字签名 是可以信任的。主要使用目录服务LDAP和数据</li>
+<li>密钥备份及恢复系统 :密钥的备份与恢复只能针对解密私钥，签名私钥不能备 份，密钥的备份与恢复应由可信机构来完成。</li>
+<li>证书废除处理系统 :证书在有效期内由于某些原因可能需要废除</li>
+<li>应用系统接口 :一个完整的PK必须提供良好的应用接口，使各种应用能够与 PK交互。</li>
+</ul>
+<h4 id="pki功能">PKI功能</h4>
+<ul>
+<li>
+<ol>
+<li>认证:数据源认证，身份认证</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>完整性:数据完整性，实体完整性</li>
+</ol>
+</li>
+<li>
+<ol start="3">
+<li>不可否认性:数字签名</li>
+</ol>
+</li>
+<li>
+<ol start="4">
+<li>保密性:公钥分发密钥，密钥加密数据</li>
+</ol>
+</li>
+</ul>
+<p><strong>用途</strong>：电子商务，网上银行，安全电子邮件，VPN, SSL/TLS，文件保护</p>
+<p><strong>证书申请：</strong></p>
+<ul>
+<li>
+<ol>
+<li>新用户发起证书申请，发起注册信息给RA</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>RA系统审核用户身份，审核通过的注册请求发送给CA，CA为用户签发证书下载凭证</li>
+</ol>
+</li>
+<li>
+<ol start="3">
+<li>RA系统将证书下载凭证发送给用户，用户提交证书申请请求 4. 证书下载到用户本地，同时，证书发布到证书仓库
+<strong>应用程序校验证书</strong>：</li>
+</ol>
+</li>
+<li>获取用户的身份信息</li>
+<li>进行证书吊销状态检查(CRL、OCSP)</li>
+<li>检查证书的有效期</li>
+<li>检验数字证书</li>
+</ul>
+<h3 id="ca建立信任的方式">CA建立信任的方式</h3>
+<p>CA（Certificate Authority）是数字证书颁发机构，负责发放、吊销和管理数字证书。CA建立信任的方式主要有以下两种：</p>
+<ul>
+<li>
+<p><strong>交叉认证</strong>：CA与其他CA建立信任关系，称为交叉认证。交叉认证可以建立CA之间的信任链，从而使CA发放的数字证书在多个CA之间相互信任。</p>
+</li>
+<li>
+<p><strong>根证书颁布机构（Root CA）</strong>：根证书颁布机构是CA的顶级机构，其证书被认为是可信的。如果其他CA的信任链最终指向根证书颁布机构，则这些CA发放的数字证书也被认为是可信的。</p>
+</li>
+</ul>
+<p><strong>交叉认证</strong></p>
+<p>交叉认证是CA建立信任关系最常用的方式。交叉认证可以通过以下两种方式实现：</p>
+<ul>
+<li>
+<p><strong>直接交叉认证</strong>：两个CA直接建立信任关系，称为直接交叉认证。直接交叉认证需要两个CA互相交换证书和私钥，并将对方的证书添加到自己的信任存储中。</p>
+</li>
+<li>
+<p><strong>间接交叉认证</strong>：通过第三方CA建立信任关系，称为间接交叉认证。间接交叉认证需要两个CA都与第三方CA建立信任关系，并将第三方CA的证书添加到自己的信任存储中。</p>
+</li>
+</ul>
+<p><strong>根证书颁布机构</strong></p>
+<p>根证书颁布机构是CA的顶级机构，其证书被认为是可信的。根证书颁布机构的证书通常由政府机构或知名组织颁发，并存储在操作系统或浏览器等软件中。</p>
+<p>如果其他CA的信任链最终指向根证书颁布机构，则这些CA发放的数字证书也被认为是可信的。这是因为根证书颁布机构的证书被认为是可信的，因此其他CA发放的数字证书也被认为是可信的。</p>
+<p><strong>信任链</strong></p>
+<p>信任链是CA之间的信任关系，可以通过交叉认证或根证书颁布机构来建立。信任链可以使CA发放的数字证书在多个CA之间相互信任。</p>
+<h3 id="数字证书及证书验证">数字证书及证书验证</h3>
+<p>（特别是第四步，需要掌握web应用中证书验证的细节）</p>
+<h4 id="数字证书">数字证书</h4>
+<p>证书最重要得信息有主体名、公钥以及认证机构的签名、算法和用途。</p>
+<ul>
+<li>证书结构</li>
+<li>证书吊销列表CRL
+PKI适用于异构环境，所以证书格式必须统一，公钥证书的形式是由 X.509标准制定
+<img src="https://s2.loli.net/2024/01/05/L2a98P1wxJN3BTn.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+</ul>
+<p><img src="https://s2.loli.net/2024/01/05/3dYKc2yfHz6x7nb.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/01/05/XcRZiMgl7s8ody1.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h4 id="证书验证">证书验证</h4>
+<p>验证步骤
+<img src="https://s2.loli.net/2024/01/05/LVnU8GzKExsWAwl.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<ul>
+<li>证书链认证
+<img src="https://s2.loli.net/2024/01/05/DTFyqYd6imnlGO4.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/DTFyqYd6imnlGO4.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/ZS3hjQXG7tls6Bu.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></li>
+</ul>
+<p>==重点：web应用中证书验证的细节==</p>
+<p><img src="https://s2.loli.net/2024/01/05/MDgkOT5ja4IynUJ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<ul>
+<li>验证有效性</li>
+<li>验证可用性</li>
+<li>验证证书结构中的证书用途</li>
+</ul>
+<h3 id="pki的安全性">PKI的安全性</h3>
+<p><img src="https://s2.loli.net/2024/01/05/y6eHCQIx58Tr9Gg.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/01/05/O3dVzbrETQfyRL5.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/yfcmKAOqJMa6IvQ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/ijvSA73y5s98QlG.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h1 id="第四章-身份验证">第四章 身份验证</h1>
+<p><img src="https://s2.loli.net/2024/01/05/6zpVJA1PndfB5yW.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="基于文本口令认证的安全机制">基于文本口令认证的安全机制</h3>
+<p><img src="https://s2.loli.net/2024/01/05/2m7gidOvA3WxQeP.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/01/05/JD3ryTLAR2Ei8F5.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/01/05/iPJKamrVZ4Te7N9.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/unELX5dmqvOscJy.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/Qvi3VwP9ru2ZUfm.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="基于密码学的认证协议能分析协议根据需要设计协议">基于密码学的认证协议（能分析协议，根据需要设计协议）</h3>
+<p><img src="https://s2.loli.net/2024/01/05/HwgKBjR7PkrFbOY.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/1SodiyDQE8l6FqN.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/97kOSMNqu8KtgUF.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/xly8wg1DUYRheZA.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/KDLyxTOf29JvmWn.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="基于设备的验证及其案例-rfid扫码验证">基于设备的验证及其案例 （RFID，扫码验证）</h3>
+<p><img src="https://s2.loli.net/2024/01/05/OaM7jStH2pAcDZC.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/tbeWSBsO6Ig3U7q.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/MDKIt1yLF5QA8Th.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/qUIzK6LD3uyaMwi.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/01/05/EfDA9VRQl81LKa3.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/J5e6QmF2su3iY4v.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/AstBkfVWwnb1zQJ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h4 id="例子">例子</h4>
+<p><img src="https://s2.loli.net/2024/01/05/YS3Rnb46TdhKotJ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/kRGidDngzQoVeL4.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/odZMK893ctgBGws.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/BnjctU7dxLFuaRo.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/xhs8n3SrBAlHqUk.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/QiUxsL9XgWSd3eb.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/MnhioyEW4j289k5.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/H4yMevWudbPwqmi.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/pfbvqOjdZR7yXBz.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="现实中的认证与密钥交换协议kerberos">现实中的认证与密钥交换协议（kerberos）</h3>
+<p><strong>kerberos协议</strong>
+<img src="https://s2.loli.net/2024/01/05/x8i6XBflQvpFDMe.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/fkmd4tynrwJVOlL.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h1 id="第五章-访问控制">第五章 访问控制</h1>
+<p><img src="https://s2.loli.net/2024/01/05/eZWfphDQ6ozwcCL.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="自主访问控制">自主访问控制</h2>
+<p><img src="https://s2.loli.net/2024/01/05/izJsf1p37MQAPw6.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/YukdbNwc7ZAWPmC.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/KewzH1lmoi38SZD.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="强制访问控制">强制访问控制</h2>
+<p><img src="https://s2.loli.net/2024/01/05/JWycE2TvhqUfL1x.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/FWEjV7ZGrmBuhdQ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/WqP7Eda1VxJoju2.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/zjubGmI2SviMWsf.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/B5aXHAxinuNfETr.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="基于角色访问控制">基于角色访问控制</h2>
+<p><img src="https://s2.loli.net/2024/01/05/4Dlepo3KUrMqxJd.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/xC1tv9eoADV2wEh.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="基于属性访问控制">基于属性访问控制</h2>
+<p><img src="https://s2.loli.net/2024/01/05/akyXOpJeR6YcT7f.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/sryRtgo73vYc5TE.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h1 id="数据安全">数据安全</h1>
+<p><img src="https://s2.loli.net/2024/01/05/UQ9xX3ljEbgZ4Iv.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="数据存储加密">数据存储加密</h2>
+<p><img src="https://s2.loli.net/2024/01/05/o6FLSTqA5wUmQDN.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/r2qYBwRz5WODtdE.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="系统可靠性与数据容错">系统可靠性与数据容错</h2>
+<h3 id="数据备份的策略及raid机制的几种备份机制">数据备份的策略，及RAID机制的几种备份机制</h3>
+<p><img src="https://s2.loli.net/2024/01/05/G35ztIiENkFDMQj.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/B9eKX3D7CVu5A2R.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<p><img src="https://s2.loli.net/2024/01/05/Wkr6KTSHaNiXAPj.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/Ow5omPGTgZy3EFp.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="数据恢复机制基于备份的和非备份的">数据恢复机制（基于备份的和非备份的）</h3>
+<p>数据恢复机制是指在数据丢失或损坏的情况下，恢复数据的机制。数据恢复机制可以分为基于备份的和非备份的两种。</p>
+<p><strong>基于备份的数据恢复机制</strong></p>
+<p>基于备份的数据恢复机制是指通过备份数据来恢复数据的机制。备份数据是指在数据发生变化之前，将数据复制到其他存储设备上的副本。</p>
+<p>基于备份的数据恢复机制具有以下优点：</p>
+<ul>
+<li><strong>恢复速度快</strong>：基于备份的数据恢复机制可以直接从备份数据中恢复数据，因此恢复速度较快。</li>
+<li><strong>恢复准确性高</strong>：基于备份的数据恢复机制可以恢复到备份数据的状态，因此恢复准确性较高。</li>
+</ul>
+<p>基于备份的数据恢复机制有以下缺点：</p>
+<ul>
+<li><strong>需要定期进行备份</strong>：基于备份的数据恢复机制需要定期进行备份，以确保备份数据的完整性和可用性。</li>
+<li><strong>备份数据需要存储在安全的地方</strong>：备份数据需要存储在安全的地方，以防止备份数据被丢失或损坏。</li>
+</ul>
+<p><strong>非备份的数据恢复机制</strong></p>
+<p>非备份的数据恢复机制是指不使用备份数据来恢复数据的机制。非备份的数据恢复机制主要有以下几种：</p>
+<ul>
+<li>
+<p><strong>数据修复</strong>：数据修复是指通过修复损坏的数据来恢复数据。数据修复可以通过以下方式进行：</p>
+<ul>
+<li>使用数据恢复软件：数据恢复软件可以自动识别损坏的数据并进行修复。</li>
+<li>手动修复：在熟悉数据结构的情况下，可以手动修复损坏的数据。</li>
+</ul>
+</li>
+<li>
+<p><strong>数据重建</strong>：数据重建是指通过重新生成数据来恢复数据。数据重建可以通过以下方式进行：</p>
+<ul>
+<li>使用数据库工具：数据库工具可以自动生成数据库数据。</li>
+<li>手动重建：在熟悉数据业务逻辑的情况下，可以手动重建数据。</li>
+</ul>
+</li>
+</ul>
+<p>非备份的数据恢复机制具有以下优点：</p>
+<ul>
+<li><strong>不需要定期进行备份</strong>：非备份的数据恢复机制不需要定期进行备份，因此可以节省备份成本。</li>
+<li><strong>备份数据不需要存储在安全的地方</strong>：非备份的数据恢复机制不需要备份数据，因此可以减少备份数据的安全风险。</li>
+</ul>
+<p>非备份的数据恢复机制有以下缺点：</p>
+<ul>
+<li><strong>恢复速度慢</strong>：非备份的数据恢复机制需要重新生成数据，因此恢复速度较慢。</li>
+<li><strong>恢复准确性低</strong>：非备份的数据恢复机制可能会导致数据丢失或损坏。</li>
+</ul>
+<p><strong>数据恢复机制的选择</strong></p>
+<p>数据恢复机制的选择需要根据具体情况进行。如果数据丢失或损坏的可能性较高，则建议采用基于备份的数据恢复机制。如果数据丢失或损坏的可能性较低，则可以采用非备份的数据恢复机制。</p>
+<p>在选择数据恢复机制时，需要考虑以下因素：</p>
+<ul>
+<li><strong>数据的重要性</strong>：数据的重要性越高，恢复数据的准确性和速度越重要，因此更建议采用基于备份的数据恢复机制。</li>
+<li><strong>数据丢失或损坏的可能性</strong>：数据丢失或损坏的可能性越高，恢复数据的成本越高，因此更建议采用基于备份的数据恢复机制。</li>
+<li><strong>备份成本</strong>：备份成本越高，更建议采用非备份的数据恢复机制。</li>
+<li><strong>备份数据的安全性</strong>：备份数据的安全性越低，更建议采用非备份的数据恢复机制。</li>
+</ul>
+<h2 id="隐私保护技术">隐私保护技术</h2>
+<h3 id="匿名化基本原理和方法">匿名化基本原理和方法</h3>
+<p><img src="https://s2.loli.net/2024/01/05/HXftvrKqchByJZG.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/3g9drOF4iL6tDnN.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/DRqS3LJswu5rB8N.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/4wI1X3iHbKYrSns.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/nwQb7p9liukxyzV.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="差分隐私原理加什么噪声不同敏感度函数的适用场景以数值型为例去分析">差分隐私原理（加什么噪声、不同敏感度函数的适用场景）以数值型为例去分析</h3>
+<p><img src="https://s2.loli.net/2024/01/05/bHt9JleG72fFx8c.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h3 id="同态加密的基本思想">同态加密的基本思想</h3>
+<p><img src="https://s2.loli.net/2024/01/05/HTZjLUm9DcC8xX7.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/2WAnV49ExyMNGob.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/2WAnV49ExyMNGob.png"
+	
+	
+	
+	loading="lazy"
+	
+	
+></p>
+<h1 id="第七章">第七章</h1>
+<p><img src="https://s2.loli.net/2024/01/05/PJsrX1LZa8bQ6dl.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/75lVfbyMiP4psgQ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/bUnBSAQv8M4HYWD.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/baOlhX9twG7ifRI.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/H2FT8WPJjwZfQ9I.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+>
+<img src="https://s2.loli.net/2024/01/05/2D4CjaTipqInGAZ.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image.png"
+	
+	
+></p>
+<h2 id="比较">比较</h2>
+<p>IPsec VPN 和 TLS VPN 都是用于创建安全连接的虚拟专用网络（VPN）协议。它们都使用加密和身份验证来保护数据在公共网络上的传输。</p>
+<p><strong>IPsec VPN</strong></p>
+<p>IPsec VPN 是基于 IP 协议的 VPN 协议。它使用两种主要协议来保护数据：</p>
+<ul>
+<li>
+<p><strong>AH（安全头）</strong>：AH 用于保护数据的完整性和可靠性。</p>
+</li>
+<li>
+<p><strong>ESP（安全负载封装）</strong>：ESP 用于保护数据的保密性。</p>
+</li>
+</ul>
+<p>IPsec VPN 是强大的 VPN 协议，可提供高级安全性。它支持各种加密算法和密钥长度，并支持身份验证方法，例如 X.509 数字证书和预共享密钥。</p>
+<p><strong>TLS VPN</strong></p>
+<p>TLS VPN 是基于传输层安全性 (TLS) 协议的 VPN 协议。TLS 是一种通用协议，用于保护数据在网络上的传输。它使用两种主要协议来保护数据：</p>
+<ul>
+<li>
+<p><strong>TLS 握手</strong>：TLS 握手用于建立安全连接并交换密钥。</p>
+</li>
+<li>
+<p><strong>TLS 传输</strong>：TLS 传输用于保护数据在安全连接上的传输。</p>
+</li>
+</ul>
+<p>TLS VPN 是相对较新的 VPN 协议，但它已经迅速获得普及。它提供与 IPsec VPN 相当的安全性，但通常更易于部署和管理。</p>
+<p><strong>IPsec VPN 与 TLS VPN 的比较</strong></p>
+<div class="table-wrapper"><table>
+  <thead>
+      <tr>
+          <th>功能</th>
+          <th>IPsec VPN</th>
+          <th>TLS VPN</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>协议</td>
+          <td>IP</td>
+          <td>TLS</td>
+      </tr>
+      <tr>
+          <td>安全性</td>
+          <td>高</td>
+          <td>高</td>
+      </tr>
+      <tr>
+          <td>加密算法</td>
+          <td>多种</td>
+          <td>多种</td>
+      </tr>
+      <tr>
+          <td>密钥长度</td>
+          <td>多种</td>
+          <td>多种</td>
+      </tr>
+      <tr>
+          <td>身份验证方法</td>
+          <td>X.509 数字证书、预共享密钥</td>
+          <td>X.509 数字证书、预共享密钥</td>
+      </tr>
+      <tr>
+          <td>部署</td>
+          <td>复杂</td>
+          <td>简单</td>
+      </tr>
+      <tr>
+          <td>管理</td>
+          <td>复杂</td>
+          <td>简单</td>
+      </tr>
+      <tr>
+          <td>兼容性</td>
+          <td>广泛</td>
+          <td>广泛</td>
+      </tr>
+      <tr>
+          <td>成本</td>
+          <td>高</td>
+          <td>低</td>
+      </tr>
+  </tbody>
+</table></div>
+<p><strong>结论</strong></p>
+<p>IPsec VPN 和 TLS VPN 都是可用于创建安全连接的强大 VPN 协议。IPsec VPN 提供更高的安全性，但 TLS VPN 更易于部署和管理。最终，选择哪种协议取决于具体的需求和要求。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">Related content</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/p/java/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">JAVA</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/javaweb/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Javaweb</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/msf-ms17-010%E5%A4%8D%E7%8E%B0/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">MSF ms17-010复现</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/vue3.js/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Vue3.js</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <div class="disqus-container">
+    <div id="disqus_thread"></div>
+<script>
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "hugo-theme-stack" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (typeof DISQUS == 'object') {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2025 Example Person
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.20.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
