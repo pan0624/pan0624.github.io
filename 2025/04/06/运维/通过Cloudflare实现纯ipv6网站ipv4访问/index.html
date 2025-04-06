@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>通过Cloudflare实现纯ipv6网站ipv4访问 | pan0624的博客</title><meta name="author" content="pan0624"><meta name="copyright" content="pan0624"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言以及原理随着时间的推移，家宽中ipv4的发放可以说越来越严格，但是随着ipv6技术的进一步成熟（可能还有运营商的业绩要求），ipv6的公网地址可以说是人人都有了，无需复杂调整，无需软路由，无需openwrt，大多数家庭的设备基本只需要打开ipv6桥接，让光猫接管ipv6，就能获取ipv6地址。  这里给出的截图是openwrt系统作为参考理论上家庭服务器中的服务或者路由器接一个ddns就能随意">
+<meta property="og:type" content="article">
+<meta property="og:title" content="通过Cloudflare实现纯ipv6网站ipv4访问">
+<meta property="og:url" content="https://blog.pan0624.top/2025/04/06/%E8%BF%90%E7%BB%B4/%E9%80%9A%E8%BF%87Cloudflare%E5%AE%9E%E7%8E%B0%E7%BA%AFipv6%E7%BD%91%E7%AB%99ipv4%E8%AE%BF%E9%97%AE/index.html">
+<meta property="og:site_name" content="pan0624的博客">
+<meta property="og:description" content="前言以及原理随着时间的推移，家宽中ipv4的发放可以说越来越严格，但是随着ipv6技术的进一步成熟（可能还有运营商的业绩要求），ipv6的公网地址可以说是人人都有了，无需复杂调整，无需软路由，无需openwrt，大多数家庭的设备基本只需要打开ipv6桥接，让光猫接管ipv6，就能获取ipv6地址。  这里给出的截图是openwrt系统作为参考理论上家庭服务器中的服务或者路由器接一个ddns就能随意">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.pan0624.top/img/avatar.png">
+<meta property="article:published_time" content="2025-04-06T09:27:00.000Z">
+<meta property="article:modified_time" content="2025-04-06T11:34:34.469Z">
+<meta property="article:author" content="pan0624">
+<meta property="article:tag" content="web">
+<meta property="article:tag" content="Cloudflare">
+<meta property="article:tag" content="飞牛OS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.pan0624.top/img/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "通过Cloudflare实现纯ipv6网站ipv4访问",
+  "url": "https://blog.pan0624.top/2025/04/06/%E8%BF%90%E7%BB%B4/%E9%80%9A%E8%BF%87Cloudflare%E5%AE%9E%E7%8E%B0%E7%BA%AFipv6%E7%BD%91%E7%AB%99ipv4%E8%AE%BF%E9%97%AE/",
+  "image": "https://blog.pan0624.top/img/avatar.png",
+  "datePublished": "2025-04-06T09:27:00.000Z",
+  "dateModified": "2025-04-06T11:34:34.469Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "pan0624",
+      "url": "https://blog.pan0624.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.svg"><link rel="canonical" href="https://blog.pan0624.top/2025/04/06/%E8%BF%90%E7%BB%B4/%E9%80%9A%E8%BF%87Cloudflare%E5%AE%9E%E7%8E%B0%E7%BA%AFipv6%E7%BD%91%E7%AB%99ipv4%E8%AE%BF%E9%97%AE/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '通过Cloudflare实现纯ipv6网站ipv4访问',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">22</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/logo.png" alt="Logo"><span class="site-name">pan0624的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">通过Cloudflare实现纯ipv6网站ipv4访问</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">通过Cloudflare实现纯ipv6网站ipv4访问</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-06T09:27:00.000Z" title="发表于 2025-04-06 17:27:00">2025-04-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-06T11:34:34.469Z" title="更新于 2025-04-06 19:34:34">2025-04-06</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言以及原理"><a href="#前言以及原理" class="headerlink" title="前言以及原理"></a>前言以及原理</h1><p>随着时间的推移，家宽中ipv4的发放可以说越来越严格，但是随着ipv6技术的进一步成熟（<del>可能还有运营商的业绩要求</del>），ipv6的公网地址可以说是人人都有了，无需复杂调整，无需软路由，无需openwrt，大多数家庭的设备基本只需要打开ipv6桥接，让光猫接管ipv6，就能获取ipv6地址。</p>
+<p><img src="https://s2.loli.net/2025/04/06/R4b6TvfFoLinSlh.png" alt="image.png"></p>
+<p>这里给出的截图是openwrt系统作为参考<br>理论上家庭服务器中的服务或者路由器接一个ddns就能随意访问了，但是大部分家宽有一个问题，对于常用端口，如<code>80</code>，<code>443</code>端口的截断。如何在外网环境（有ipv6）直接使用域名https访问服务以及如何在某些只有ipv4的特殊环境—-校园网，公司WI-FI，来实现只有纯ipv6公网的服务的访问呢。这是本文将要探讨的问题。<br>总所周知，Cloudflare可以称得上互联网大善人，作者的网站也是一直放在CF上面托管的。CF的CDN代理：即黄色小云朵,其实不只有防ddns的能力。</p>
+<p><img src="https://s2.loli.net/2025/04/06/M2ciEWvZR3kCuxI.png" alt="image.png"></p>
+<p><code>nsloookup</code>查看使用了CF代理的子域名ip可以发现，一个网站CF总共提供了4个ip，两个v6的地址和两个v4的地址。并且无论原来的dns绑定的是v4ip还是v6ip。<br>从这里想到是否可以通过CF的代理实现纯v6地址的v4访问。<br>谷歌搜索了一下，发现两种方案<br>1.修改或者反代服务端口到CF默认检查的端口<br>2.使用<strong>回源规则</strong>（Origin Rules）代理端口</p>
+<h1 id="方法一：反代服务端口到CF默认检查的端口"><a href="#方法一：反代服务端口到CF默认检查的端口" class="headerlink" title="方法一：反代服务端口到CF默认检查的端口"></a>方法一：反代服务端口到CF默认检查的端口</h1><p>CF默认检查的端口有：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">============================================================</span><br><span class="line">默认使用的HTTP端口   默认使用的HTTPS端口   其他端口（禁用缓存）</span><br><span class="line">80                   443                 2052</span><br><span class="line">8080                 2053                2053</span><br><span class="line">8880                 2083                2082</span><br><span class="line">2052                 2087                2083</span><br><span class="line">2082                 2096                2086</span><br><span class="line">2086                 8443                2087</span><br><span class="line">2095                                     2095</span><br><span class="line">                                         2096</span><br><span class="line">                                         8880</span><br><span class="line">                                         8443</span><br><span class="line">============================================================</span><br></pre></td></tr></table></figure>
+
+<p>理论上可以通过lucky，nginx，caddy等进行反代或者直接修改服务到对应端口（<strong>注意http和https对应不同端口</strong>）,笔者通过fnos商店自带的带gui的lucy进行了尝试，代理了2083端口，开启了TLS，但是并没有成功，怀疑所在地区的移动将这些端口也进行了封锁。</p>
+<p>参考教程<a target="_blank" rel="noopener" href="https://post.smzdm.com/p/awoo6m44/">飞牛fnos利用lucky反向代理实现ipv4环境访问ipv6公网nas</a></p>
+<h1 id="方法二：使用回源规则（Origin-Rules）代理端口"><a href="#方法二：使用回源规则（Origin-Rules）代理端口" class="headerlink" title="方法二：使用回源规则（Origin Rules）代理端口"></a>方法二：使用<strong>回源规则</strong>（Origin Rules）代理端口</h1><h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
+<li>拥有一个通过CF管理的域名</li>
+<li>设置AAAA域名解析绑定到自己的家庭v6公网服务器，并且不设置CF代理（小灰云），并且在服务器端设置好ddns来应付家宽几天一变的ip。这个域名用来纯v6访问以及保证其他服务器能正常访问。</li>
+</ol>
+<p><img src="https://s2.loli.net/2025/04/06/zM9fk6dwH14nXja.png" alt="image.png"></p>
+<p><img src="https://s2.loli.net/2025/04/06/kbYUInNrc8KpAqz.png" alt="image.png|500"></p>
+<h2 id="设置用来v4访问的域名"><a href="#设置用来v4访问的域名" class="headerlink" title="设置用来v4访问的域名"></a>设置用来v4访问的域名</h2><p>最好直接通过cname指向之前设置的纯v6域名。</p>
+<p><img src="https://s2.loli.net/2025/04/06/luB9GK6mpCyxfda.png" alt="image.png"></p>
+<p>理论上说这时候如果我们的服务没有封锁任何端口，就已经能通过现在设置的域名访问。但是运营商封锁了常用端口，这就需要下面的神奇操作，借用CF的服务器进行中转。</p>
+<h2 id="设置回源规则（Origin-Rules）"><a href="#设置回源规则（Origin-Rules）" class="headerlink" title="设置回源规则（Origin Rules）"></a>设置回源规则（Origin Rules）</h2><p>首先打开侧边栏的规则-概述<br><img src="https://s2.loli.net/2025/04/06/VHKasqG1FmrphXc.png" alt="image.png|500"></p>
+<p>其次点击右边显示所有规则这里与旧版的界面不同，不能在侧边栏直接找到。<del>CloudFlare的省钱神奇小妙招</del><br><img src="https://s2.loli.net/2025/04/06/ymBtsIf5YpAjigz.png" alt="image.png|500"></p>
+<p>找到我们需要的Origin Rules，点击创建规则，名字可如图设置。<br>设置选项如下图</p>
+<p><img src="https://s2.loli.net/2025/04/06/SERTFc8vL1Dkpd6.png" alt="image.png"><br><img src="https://s2.loli.net/2025/04/06/vPX7wiWZynBQ4Cm.png" alt="image.png"></p>
+<p>这里重写到fnos默认的https端口5667，记得访问的时候使用https:&#x2F;&#x2F;</p>
+<p>这样其实就已经能够访问了，通过<a target="_blank" rel="noopener" href="https://v4fnos.example.com/">https://v4fnos.example.com/</a><br><img src="https://s2.loli.net/2025/04/06/jUJlSh6XWy9gaR3.png" alt="image.png"></p>
+<h2 id="配置Cloudflare-Workers-实现v4走cf中转，v6跳转到纯v6域名直连"><a href="#配置Cloudflare-Workers-实现v4走cf中转，v6跳转到纯v6域名直连" class="headerlink" title="配置Cloudflare Workers 实现v4走cf中转，v6跳转到纯v6域名直连"></a>配置Cloudflare Workers 实现v4走cf中转，v6跳转到纯v6域名直连</h2><h3 id="配置Workers"><a href="#配置Workers" class="headerlink" title="配置Workers"></a>配置Workers</h3><p>首先返回CF主页面，配置Workers</p>
+<p><img src="https://s2.loli.net/2025/04/06/VeEPlpFvYsz4hSJ.png" alt="image.png|500"></p>
+<p>进入Workers 和 Pages，点击创建一个默认的halloworldworkes，<img src="https://s2.loli.net/2025/04/06/FkgYqmUBe9SpJnA.png" alt="image.png|500"></p>
+<p>创建完成后再点击编辑代码，使用下面代码替换原有代码，注意编辑好自己的域名</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">addEventListener</span>(<span class="string">&#x27;fetch&#x27;</span>, <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">event.<span class="title function_">respondWith</span>(<span class="title function_">handleRequest</span>(event.<span class="property">request</span>))</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">handleRequest</span>(<span class="params">request</span>) &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取并识别客户端的IP地址</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> clientIp = request.<span class="property">headers</span>.<span class="title function_">get</span>(<span class="string">&#x27;CF-Connecting-IP&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取请求的主机名</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> host = request.<span class="property">headers</span>.<span class="title function_">get</span>(<span class="string">&#x27;Host&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义主机名v4fnos.example.com的处理逻辑</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (host === <span class="string">&#x27;v4fnos.example.com&#x27;</span>) &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 检查IP地址是IPv6还是IPv4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (clientIp.<span class="title function_">includes</span>(<span class="string">&#x27;:&#x27;</span>)) &#123; <span class="comment">// IPv6 address</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 进一步检查IPv6地址是否以fe80开头</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!clientIp.<span class="title function_">startsWith</span>(<span class="string">&#x27;fe80&#x27;</span>)) &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 302重定向到有公网且没开CDN代理的地址homefnos.example.com:5667</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> url = <span class="keyword">new</span> <span class="title function_">URL</span>(request.<span class="property">url</span>);</span><br><span class="line"></span><br><span class="line">url.<span class="property">host</span> = <span class="string">&#x27;homefnos.example.com:5667&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="title class_">Response</span>.<span class="title function_">redirect</span>(url.<span class="title function_">toString</span>(), <span class="number">302</span>);</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果是fe80开头的IPv6地址，直接返回正常响应</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="title function_">fetch</span>(request);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">else</span> &#123; <span class="comment">// IPv4 address</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果是IPv4则正常访问，此处正常访问就走了Origin规则</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="title function_">fetch</span>(request);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果不是你监控的主机名，则继续正常访问</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="title function_">fetch</span>(request);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>逻辑：判断客户端ip是否为公共v6地址，是则302重定向跳转到<a target="_blank" rel="noopener" href="https://homefnos.example.com:5667/">https://homefnos.example.com:5667/</a><br>不是v6地址则走Origin规则正常代理使用<br>点击部署</p>
+<h3 id="配置域名的Workers路由（匹配域名和Workers）"><a href="#配置域名的Workers路由（匹配域名和Workers）" class="headerlink" title="配置域名的Workers路由（匹配域名和Workers）"></a>配置域名的Workers路由（匹配域名和Workers）</h3><p>来到域名管理界面，点击侧边栏Workers 路由<br><img src="https://s2.loli.net/2025/04/06/lVgkspWruyDOZeS.png" alt="image.png|500"></p>
+<p>添加路由，匹配v4访问的域名<br><img src="https://s2.loli.net/2025/04/06/U8ygNpRHxA7m6li.png" alt="image.png"></p>
+<p>这样就完成了所有的配置，实现了v4走CF中转，v6直接直连。</p>
+<h2 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h2><p>不难发现CloudFlare实现的中转一次只能匹配一个端口，而且在访问速度十分慢，只能用于管理的web界面，影音视频流相关服务基本卡到不可用。</p>
+<p>其实可以通过修改fnos默认的nginx配置文件，实现每个通过端口通信的服务都转换成5667端口下的子路径服务（类似飞牛影音）来白嫖飞牛的中转，但是目前fnos还处在公测阶段，每次更新都会洗掉nginx配置文件，所以不建议这么做。</p>
+<h1 id="参考地址"><a href="#参考地址" class="headerlink" title="参考地址"></a>参考地址</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://club.fnnas.com/forum.php?mod=viewthread&tid=3022">萌新折腾笔记）网络畅行系列——利用CloudFlare实现域名的双网访问</a></li>
+<li><a target="_blank" rel="noopener" href="https://post.smzdm.com/p/avxzg2gm/">利用cloudflare让ipv4与ipv6互通</a></li>
+<li><a target="_blank" rel="noopener" href="https://post.smzdm.com/p/awoo6m44/">飞牛fnos利用lucky反向代理实现ipv4环境访问ipv6公网nas</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/opus/969223623124451365">使用Cloudflare代理为纯IPv6站点添加IPv4访问</a></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://blog.pan0624.top">pan0624</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://blog.pan0624.top/2025/04/06/%E8%BF%90%E7%BB%B4/%E9%80%9A%E8%BF%87Cloudflare%E5%AE%9E%E7%8E%B0%E7%BA%AFipv6%E7%BD%91%E7%AB%99ipv4%E8%AE%BF%E9%97%AE/">https://blog.pan0624.top/2025/04/06/%E8%BF%90%E7%BB%B4/%E9%80%9A%E8%BF%87Cloudflare%E5%AE%9E%E7%8E%B0%E7%BA%AFipv6%E7%BD%91%E7%AB%99ipv4%E8%AE%BF%E9%97%AE/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://blog.pan0624.top" target="_blank">pan0624的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/web/">web</a><a class="post-meta__tags" href="/tags/Cloudflare/">Cloudflare</a><a class="post-meta__tags" href="/tags/%E9%A3%9E%E7%89%9BOS/">飞牛OS</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/02/20/%E5%89%8D%E7%AB%AF/web/%E6%A0%A1%E5%9B%AD%E5%85%85%E7%94%B5%E7%AB%99%E6%9F%A5%E8%AF%A2web%E7%AB%AF/" title="校园充电站查询web端"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">校园充电站查询web端</div></div><div class="info-2"><div class="info-item-1">electronic-eyes-web-and-docker校园充电站查询web端,基于来点电官方小程序接口 文件结构12345electric-eye/├── index.html # 主页面文件├── fun.js # JavaScript逻辑文件└── style.css # 样式文件  index.html 界面显示充电桩列表，并通过按钮选择不同的充电桩位置，同时动态加载充电桩数据到下方列表。 12345&lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;引入格式化样式文件  12345&lt;script src=&quot;fun.js&quot;&gt;&lt;/script&gt;使用fun.js中函数  12345&lt;button id=&quot;btn1&quot; class=&quot;location-btn&quot;...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/09/25/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/CSRF/" title="CSRF"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-09-25</div><div class="info-item-2">CSRF</div></div><div class="info-2"><div class="info-item-1">课程报告: CSRF攻击技术及其实现1. 简介跨站请求伪造 (Cross-Site Request Forgery, CSRF) 是一种网络安全攻击，攻击者通过伪造受信任用户的请求，执行未授权的操作。它利用了用户在已认证会话中不当保护的漏洞，诱使用户在不知情的情况下执行某些动作，从而达到攻击目的。 2. CSRF 攻击原理CSRF 攻击利用了受害者在已认证状态下的身份。主要流程如下：  受害者登录到受信任网站（如银行网站），并产生一个有效的会话 cookie。 攻击者诱使受害者访问一个包含恶意请求的网页。 受害者访问该恶意网页时，网页中的恶意代码会自动发送一个请求到受信任网站。 由于受害者已登录，浏览器会自动附加会话 cookie，因此该请求将以受害者的身份执行。 受信任网站认为这是合法的请求，并执行请求中的操作，如转账、修改设置等。  3. CSRF 攻击的类型 GET 请求的 CSRF 攻击：通过包含恶意 URL 的图像、超链接等来触发。 POST 请求的 CSRF 攻击：通过隐藏表单和自动提交脚本来实现。  4. CSRF 攻击的实现下面是一个简单的 CSRF...</div></div></div></a><a class="pagination-related" href="/2025/02/20/%E5%89%8D%E7%AB%AF/web/%E6%A0%A1%E5%9B%AD%E5%85%85%E7%94%B5%E7%AB%99%E6%9F%A5%E8%AF%A2web%E7%AB%AF/" title="校园充电站查询web端"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-20</div><div class="info-item-2">校园充电站查询web端</div></div><div class="info-2"><div class="info-item-1">electronic-eyes-web-and-docker校园充电站查询web端,基于来点电官方小程序接口 文件结构12345electric-eye/├── index.html # 主页面文件├── fun.js # JavaScript逻辑文件└── style.css # 样式文件  index.html 界面显示充电桩列表，并通过按钮选择不同的充电桩位置，同时动态加载充电桩数据到下方列表。 12345&lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;引入格式化样式文件  12345&lt;script src=&quot;fun.js&quot;&gt;&lt;/script&gt;使用fun.js中函数  12345&lt;button id=&quot;btn1&quot; class=&quot;location-btn&quot;...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">pan0624</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">22</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/pan0624" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:pan_0623@outlook.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">保持勇气，无限进步</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80%E4%BB%A5%E5%8F%8A%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">前言以及原理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E5%8F%8D%E4%BB%A3%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%8F%A3%E5%88%B0CF%E9%BB%98%E8%AE%A4%E6%A3%80%E6%9F%A5%E7%9A%84%E7%AB%AF%E5%8F%A3"><span class="toc-number">2.</span> <span class="toc-text">方法一：反代服务端口到CF默认检查的端口</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%9B%9E%E6%BA%90%E8%A7%84%E5%88%99%EF%BC%88Origin-Rules%EF%BC%89%E4%BB%A3%E7%90%86%E7%AB%AF%E5%8F%A3"><span class="toc-number">3.</span> <span class="toc-text">方法二：使用回源规则（Origin Rules）代理端口</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">3.1.</span> <span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%94%A8%E6%9D%A5v4%E8%AE%BF%E9%97%AE%E7%9A%84%E5%9F%9F%E5%90%8D"><span class="toc-number">3.2.</span> <span class="toc-text">设置用来v4访问的域名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E5%9B%9E%E6%BA%90%E8%A7%84%E5%88%99%EF%BC%88Origin-Rules%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">设置回源规则（Origin Rules）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AECloudflare-Workers-%E5%AE%9E%E7%8E%B0v4%E8%B5%B0cf%E4%B8%AD%E8%BD%AC%EF%BC%8Cv6%E8%B7%B3%E8%BD%AC%E5%88%B0%E7%BA%AFv6%E5%9F%9F%E5%90%8D%E7%9B%B4%E8%BF%9E"><span class="toc-number">3.4.</span> <span class="toc-text">配置Cloudflare Workers 实现v4走cf中转，v6跳转到纯v6域名直连</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEWorkers"><span class="toc-number">3.4.1.</span> <span class="toc-text">配置Workers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%9F%9F%E5%90%8D%E7%9A%84Workers%E8%B7%AF%E7%94%B1%EF%BC%88%E5%8C%B9%E9%85%8D%E5%9F%9F%E5%90%8D%E5%92%8CWorkers%EF%BC%89"><span class="toc-number">3.4.2.</span> <span class="toc-text">配置域名的Workers路由（匹配域名和Workers）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8D%E8%B6%B3"><span class="toc-number">3.5.</span> <span class="toc-text">不足</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E5%9C%B0%E5%9D%80"><span class="toc-number">4.</span> <span class="toc-text">参考地址</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/06/%E8%BF%90%E7%BB%B4/%E9%80%9A%E8%BF%87Cloudflare%E5%AE%9E%E7%8E%B0%E7%BA%AFipv6%E7%BD%91%E7%AB%99ipv4%E8%AE%BF%E9%97%AE/" title="通过Cloudflare实现纯ipv6网站ipv4访问">通过Cloudflare实现纯ipv6网站ipv4访问</a><time datetime="2025-04-06T09:27:00.000Z" title="发表于 2025-04-06 17:27:00">2025-04-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/20/%E5%89%8D%E7%AB%AF/web/%E6%A0%A1%E5%9B%AD%E5%85%85%E7%94%B5%E7%AB%99%E6%9F%A5%E8%AF%A2web%E7%AB%AF/" title="校园充电站查询web端">校园充电站查询web端</a><time datetime="2025-02-20T08:25:00.000Z" title="发表于 2025-02-20 16:25:00">2025-02-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/09/25/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/CSRF/" title="CSRF">CSRF</a><time datetime="2024-09-25T08:25:00.000Z" title="发表于 2024-09-25 16:25:00">2024-09-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/15/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/YOLOv8/" title="YOLOv8">YOLOv8</a><time datetime="2024-05-15T02:25:00.000Z" title="发表于 2024-05-15 10:25:00">2024-05-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/05/10/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/SecGpt/" title="SecGpt">SecGpt</a><time datetime="2024-05-10T08:25:00.000Z" title="发表于 2024-05-10 16:25:00">2024-05-10</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/top.png);"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By pan0624</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
